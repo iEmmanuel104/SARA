@@ -1,8 +1,8 @@
-# SARA Project Knowledge Base
+# DWELLR Project Knowledge Base
 
 ## Project Overview
 
-SARA (Shortlet Apartment Realtor Agent) is an AI-powered rental platform that revolutionizes the shortlet accommodation search experience through a conversational interface and personalized recommendations. The platform combines AI technology with a comprehensive property management system to deliver an intuitive, user-friendly experience for finding and booking short-term accommodations.
+DWELLR (Shortlet Apartment Realtor Agent) is an AI-powered rental platform that revolutionizes the shortlet accommodation search experience through a conversational interface and personalized recommendations. The platform combines AI technology with a comprehensive property management system to deliver an intuitive, user-friendly experience for finding and booking short-term accommodations.
 
 The application follows a client-server architecture, with a Next.js frontend and NestJS backend, leveraging advanced AI capabilities through Vercel AI SDK and Coinbase Agent Kit.
 
@@ -106,7 +106,7 @@ The application uses a dual state management approach:
 
 ## AI Architecture
 
-SARA's AI capabilities are built using a combination of Vercel AI SDK and Coinbase Agent Kit:
+DWELLR's AI capabilities are built using a combination of Vercel AI SDK and Coinbase Agent Kit:
 
 1. **Vercel AI SDK**:
    - Provides streaming UI capabilities
@@ -134,7 +134,7 @@ Each agent has access to tools like:
 
 ## Authentication System
 
-SARA uses Privy for wallet-based authentication, allowing users to:
+DWELLR uses Privy for wallet-based authentication, allowing users to:
 
 - Connect with cryptocurrency wallets (MetaMask, Coinbase Wallet, etc.)
 - Sign in with traditional methods (email, social)
@@ -221,7 +221,7 @@ The frontend communicates with the backend through a RESTful API. Key API areas 
 
 ### AI Chat Interface
 
-- **Chat Dashboard**: Main conversation interface with SARA
+- **Chat Dashboard**: Main conversation interface with DWELLR
 - **Property Search**: Natural language property search
 - **Recommendations**: Personalized property suggestions
 - **Booking Assistance**: Help with the booking process
@@ -307,6 +307,6 @@ Components follow a hierarchical structure:
 
 ## Conclusion
 
-The SARA project combines cutting-edge technologies to create a next-generation short-term rental platform. By leveraging AI, crypto authentication, and modern web development practices, SARA offers an unparalleled user experience for both guests and hosts.
+The DWELLR project combines cutting-edge technologies to create a next-generation short-term rental platform. By leveraging AI, crypto authentication, and modern web development practices, DWELLR offers an unparalleled user experience for both guests and hosts.
 
 This knowledge base serves as a comprehensive guide for understanding the project architecture, implementation approach, and development workflow.

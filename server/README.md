@@ -1,6 +1,6 @@
-# SARA Backend
+# DWELLR Backend
 
-SARA (Shortlet Apartment Realtor Agent) is an AI-powered rental platform that transforms the shortlet accommodation search experience by providing an intelligent conversational interface, personalized recommendations, and end-to-end booking capabilities.
+DWELLR (Shortlet Apartment Realtor Agent) is an AI-powered rental platform that transforms the shortlet accommodation search experience by providing an intelligent conversational interface, personalized recommendations, and end-to-end booking capabilities.
 
 ## Tech Stack
 
@@ -22,8 +22,8 @@ SARA (Shortlet Apartment Realtor Agent) is an AI-powered rental platform that tr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/sara.git
-cd sara/server
+git clone https://github.com/your-username/dwellr.git
+cd dwellr/server
 ```
 
 2. Install dependencies:

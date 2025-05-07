@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "0.0.1",
-  "description": "SARA - Shortlet Apartment Realtor Agent API",
+  "description": "DWELLR - Shortlet Apartment Realtor Agent API",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
