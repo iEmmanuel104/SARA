@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -12,4 +9,894 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// User model and related tables
+model User {
+  id                     String               @id @default(uuid())
+  email                  String               @unique
+  passwordHash           String?
+  firstName              String
+  lastName               String
+  phoneNumber            String?
+  profilePictureUrl      String?
+  dateOfBirth            DateTime?
+  bio                    String?
+  preferredLanguage      String               @default("en")
+  preferredCurrency      String               @default("USD")
+  isHost                 Boolean              @default(false)
+  isVerified             Boolean              @default(false)
+  emailVerified          Boolean              @default(false)
+  phoneVerified          Boolean              @default(false)
+  idVerified             Boolean              @default(false)
+  twoFactorEnabled       Boolean              @default(false)
+  loginMethod            String               @default("email") // email, google, facebook, apple
+  lastLogin              DateTime?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  deletedAt              DateTime?
+  status                 String               @default("active") // active, suspended, deleted
+  referralCode           String?              @unique
+  referredById           String?
+  isAdmin                Boolean              @default(false)
+  notificationPreferences Json                @default("{\"email\": true, \"push\": true, \"sms\": false}")
+  walletAddress          String?              @unique
+
+  // Relations
+  referredBy             User?                @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals              User[]               @relation("UserReferrals")
+  hostProfile            HostProfile?
+  ownedProperties        Property[]
+  preferences            UserPreference[]
+  travelProfiles         UserTravelProfile[]
+  addresses              Address[]
+  bookingsAsGuest        Booking[]            @relation("GuestBookings")
+  bookingsAsHost         Booking[]            @relation("HostBookings")
+  reviewsWritten         Review[]             @relation("ReviewWriter")
+  reviewsReceived        Review[]             @relation("ReviewReceiver")
+  messagesSent           Message[]            @relation("MessageSender")
+  messagesReceived       Message[]            @relation("MessageReceiver")
+  conversations1         Conversation[]       @relation("ConversationParticipant1")
+  conversations2         Conversation[]       @relation("ConversationParticipant2")
+  aiConversations        AiConversation[]
+  savedProperties        SavedProperty[]
+  savedSearches          SavedSearch[]
+  notifications          Notification[]
+  devices                UserDevice[]
+  activities             UserActivity[]
+  propertyViews          PropertyView[]
+  searchLogs             SearchLog[]
+  userEmbeddings         UserEmbedding[]
+  feedback               UserFeedback[]
+  amenityPreferences     AmenityPreference[]
+  payments               Payment[]
+  reviewResponses        ReviewResponse[]
+  cancellations          Booking[]            @relation("CancelledBy")
+  propertyAvailabilityModifications PropertyAvailability[] @relation("AvailabilityModifier")
+
+  @@index([email])
+  @@index([status])
+  @@index([isHost])
+}
+
+model UserPreference {
+  id               String   @id @default(uuid())
+  userId           String
+  preferenceType   String   // travel_style, accommodation_type, amenities, etc.
+  preferenceValue  Json
+  preferenceWeight Int      @default(5) // 1-10 scale
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, preferenceType])
+  @@index([userId])
+}
+
+model UserTravelProfile {
+  id                      String   @id @default(uuid())
+  userId                  String
+  profileName             String   // "Business Travel", "Family Vacation", etc.
+  travelerCount           Int      @default(1)
+  includesChildren        Boolean  @default(false)
+  childrenAges            Int[]    @default([])
+  includesPets            Boolean  @default(false)
+  petTypes                String[] @default([])
+  typicalStayLengthNights Int?
+  budgetRangeMin          Decimal?
+  budgetRangeMax          Decimal?
+  preferredPropertyTypes  String[] @default([]) // apartment, house, villa, etc.
+  mustHaveAmenities       String[] @default([])
+  niceToHaveAmenities     String[] @default([])
+  preferredLocations      String[] @default([])
+  transportationPreference String?
+  workRequirements        Json     @default("{\"needs_workspace\": false, \"needs_good_wifi\": false}")
+  accessibilityRequirements Json    @default("{}")
+  isDefault               Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model HostProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  description        String?
+  responseRate       Decimal?
+  responseTimeMinutes Int?
+  acceptanceRate     Decimal?
+  isSuperhost        Boolean  @default(false)
+  identityVerified   Boolean  @default(false)
+  hostSince          DateTime @default(now())
+  totalReviews       Int      @default(0)
+  averageRating      Decimal?
+  languagesSpoken    String[] @default([])
+  paymentDetails     Json?
+  payoutPreferences  Json?
+  taxInformation     Json?
+  hostType           String   @default("individual") // individual, professional, company
+  hostCalendarSettings Json   @default("{\"availability_window_days\": 365, \"min_notice_hours\": 24, \"instant_booking\": false}")
+  businessName       String?
+  businessTaxId      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isSuperhost])
+}
+
+// Address model
+model Address {
+  id               String   @id @default(uuid())
+  userId           String?
+  propertyId       String?
+  addressType      String   // primary, billing, property, etc.
+  addressLine1     String
+  addressLine2     String?
+  city             String
+  stateProvince    String?
+  postalCode       String?
+  country          String
+  latitude         Decimal?
+  longitude        Decimal?
+  isPrimary        Boolean  @default(false)
+  formattedAddress String?
+  placeId          String?  // Google Maps or similar place ID
+  geocodingStatus  String   @default("pending") // pending, completed, failed
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property         Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([latitude, longitude])
+}
+
+// Property and related models
+model Property {
+  id                    String    @id @default(uuid())
+  hostId                String
+  propertyName          String
+  propertyType          String    // apartment, house, villa, etc.
+  roomType              String    // entire place, private room, shared room
+  description           String
+  summary               String
+  capacityGuests        Int
+  capacityBedrooms      Int
+  capacityBeds          Int
+  capacityBathrooms     Decimal
+  sizeSquareMeters      Decimal?
+  coverImageUrl         String?
+  status                String    @default("draft") // draft, active, inactive, under_review, blocked
+  instantBookingEnabled Boolean   @default(false)
+  selfCheckInAllowed    Boolean   @default(false)
+  selfCheckInType       String?   // lockbox, smartlock, keypad, etc.
+  checkInTimeFrom       DateTime?
+  checkInTimeTo         DateTime?
+  checkOutTime          DateTime?
+  minNights             Int       @default(1)
+  maxNights             Int       @default(365)
+  advanceBookingDays    Int       @default(365)
+  lastMinuteBookingHours Int      @default(48)
+  basePrice             Decimal
+  cleaningFee           Decimal   @default(0)
+  securityDeposit       Decimal   @default(0)
+  extraPersonFee        Decimal   @default(0)
+  weekendPrice          Decimal?
+  weeklyDiscountPercent Decimal   @default(0)
+  monthlyDiscountPercent Decimal  @default(0)
+  currency              String    @default("USD")
+  cancelPolicy          String    @default("flexible") // flexible, moderate, strict
+  averageRating         Decimal?
+  totalReviews          Int       @default(0)
+  isFeatured            Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+  lastSyncedAt          DateTime?
+  propertyRules         Json      @default("{}")
+  accessibilityFeatures Json      @default("{}")
+  neighborhoodOverview  String?
+  gettingAround         String?
+  notes                 String?
+  listingExpectations   String?
+  licenseNumber         String?
+  isVerified            Boolean   @default(false)
+
+  // Relations
+  host                  User      @relation(fields: [hostId], references: [id])
+  address               Address[]
+  amenities             PropertyAmenity[]
+  images                PropertyImage[]
+  availability          PropertyAvailability[]
+  seasonalPricing       PropertySeasonalPricing[]
+  bookings              Booking[]
+  reviews               Review[]
+  savedBy               SavedProperty[]
+  views                 PropertyView[]
+  embeddings            PropertyEmbedding[]
+  conversations         Conversation[]
+  messages              Message[]
+
+  @@index([hostId])
+  @@index([status])
+  @@index([propertyType])
+  @@index([capacityGuests])
+  @@index([basePrice])
+  @@index([averageRating])
+}
+
+model PropertyAmenity {
+  id            String   @id @default(uuid())
+  propertyId    String
+  amenityId     String
+  description   String?
+  isHighlighted Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity       Amenity  @relation(fields: [amenityId], references: [id])
+
+  @@unique([propertyId, amenityId])
+  @@index([propertyId])
+}
+
+model Amenity {
+  id               String           @id @default(uuid())
+  name             String           @unique
+  category         String           // essentials, features, safety, etc.
+  icon             String?
+  description      String?
+  isCommon         Boolean          @default(false)
+  importanceScore  Int              @default(5) // 1-10 based on guest preferences
+  searchKeywords   String[]         @default([])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  propertyAmenities PropertyAmenity[]
+  userPreferences   AmenityPreference[]
+
+  @@index([category])
+  @@index([importanceScore])
+}
+
+model PropertyImage {
+  id           String   @id @default(uuid())
+  propertyId   String
+  imageUrl     String
+  caption      String?
+  altText      String?
+  roomType     String?  // living room, bedroom, bathroom, etc.
+  width        Int?
+  height       Int?
+  sizeBytes    Int?
+  sortOrder    Int      @default(0)
+  isCoverImage Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+model PropertyAvailability {
+  id            String    @id @default(uuid())
+  propertyId    String
+  date          DateTime  @db.Date
+  isAvailable   Boolean   @default(true)
+  price         Decimal?
+  minimumNights Int?
+  maximumNights Int?
+  notes         String?
+  modifiedById  String?
+  modifiedAt    DateTime  @default(now())
+  source        String    @default("manual") // manual, sync, rule, etc.
+
+  // Relations
+  property      Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  modifiedBy    User?     @relation("AvailabilityModifier", fields: [modifiedById], references: [id])
+
+  @@unique([propertyId, date])
+  @@index([propertyId])
+  @@index([date])
+  @@index([propertyId, date, isAvailable])
+}
+
+model PropertySeasonalPricing {
+  id                 String   @id @default(uuid())
+  propertyId         String
+  name               String
+  startDate          DateTime @db.Date
+  endDate            DateTime @db.Date
+  priceModifierType  String   // percentage, fixed
+  priceModifierValue Decimal
+  minimumNights      Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  property           Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([startDate, endDate])
+}
+
+// Booking and payment models
+model Booking {
+  id                 String    @id @default(uuid())
+  propertyId         String
+  guestId            String
+  hostId             String
+  checkInDate        DateTime  @db.Date
+  checkOutDate       DateTime  @db.Date
+  numberOfGuests     Int
+  adultsCount        Int
+  childrenCount      Int       @default(0)
+  infantsCount       Int       @default(0)
+  petsCount          Int       @default(0)
+  status             String    @default("pending") // pending, confirmed, completed, cancelled, declined
+  basePrice          Decimal
+  cleaningFee        Decimal
+  securityDeposit    Decimal
+  extraPersonFee     Decimal   @default(0)
+  totalFees          Decimal
+  serviceFee         Decimal
+  hostFee            Decimal
+  taxAmount          Decimal
+  currency           String    @default("USD")
+  totalAmount        Decimal
+  paymentStatus      String    @default("pending") // pending, partially_paid, paid, refunded, failed
+  cancellationPolicy String
+  cancellationDate   DateTime?
+  cancellationReason String?
+  cancelledById      String?
+  refundAmount       Decimal?
+  guestNotes         String?
+  hostNotes          String?
+  specialRequests    String?
+  confirmationCode   String?   @unique
+  isBusinessTrip     Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  source             String    @default("website") // website, mobile_app, ai_assistant, etc.
+
+  // Relations
+  property           Property     @relation(fields: [propertyId], references: [id])
+  guest              User         @relation("GuestBookings", fields: [guestId], references: [id])
+  host               User         @relation("HostBookings", fields: [hostId], references: [id])
+  cancelledBy        User?        @relation("CancelledBy", fields: [cancelledById], references: [id])
+  payments           Payment[]
+  reviews            Review[]
+  conversations      Conversation[]
+  messages           Message[]
+
+  @@index([propertyId])
+  @@index([guestId])
+  @@index([hostId])
+  @@index([checkInDate, checkOutDate])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model Payment {
+  id                  String    @id @default(uuid())
+  bookingId           String
+  userId              String
+  paymentType         String    // booking_payment, security_deposit, refund, payout
+  amount              Decimal
+  currency            String    @default("USD")
+  paymentMethod       String    // credit_card, paypal, bank_transfer, crypto, etc.
+  paymentStatus       String    @default("pending") // pending, processing, completed, failed, refunded
+  transactionId       String?
+  paymentProcessor    String?   // stripe, paypal, coinbase, etc.
+  paymentProcessorFee Decimal?
+  paymentDate         DateTime?
+  dueDate             DateTime?
+  failureReason       String?
+  paymentDetails      Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  booking             Booking   @relation(fields: [bookingId], references: [id])
+  user                User      @relation(fields: [userId], references: [id])
+
+  @@index([bookingId])
+  @@index([userId])
+  @@index([paymentStatus])
+}
+
+// Review models
+model Review {
+  id                   String          @id @default(uuid())
+  bookingId            String
+  reviewerId           String
+  revieweeId           String
+  propertyId           String?
+  reviewType           String          // guest_review, host_review, property_review
+  rating               Int
+  reviewText           String?
+  cleanlinessRating    Int?
+  communicationRating  Int?
+  checkInRating        Int?
+  accuracyRating       Int?
+  locationRating       Int?
+  valueRating          Int?
+  isPublic             Boolean         @default(true)
+  hasResponse          Boolean         @default(false)
+  approvedAt           DateTime?
+  flaggedAsInappropriate Boolean        @default(false)
+  sentimentScore       Decimal?
+  aiGeneratedSummary   String?
+  keywords             String[]        @default([])
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relations
+  booking              Booking         @relation(fields: [bookingId], references: [id])
+  reviewer             User            @relation("ReviewWriter", fields: [reviewerId], references: [id])
+  reviewee             User            @relation("ReviewReceiver", fields: [revieweeId], references: [id])
+  property             Property?       @relation(fields: [propertyId], references: [id])
+  responses            ReviewResponse[]
+
+  @@index([bookingId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([propertyId])
+  @@index([rating])
+}
+
+model ReviewResponse {
+  id           String   @id @default(uuid())
+  reviewId     String
+  responderId  String
+  responseText String
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  review       Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  responder    User     @relation(fields: [responderId], references: [id])
+
+  @@index([reviewId])
+  @@index([responderId])
+}
+
+// Message models
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  recipientId    String
+  messageText    String
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  bookingId      String?
+  propertyId     String?
+  attachmentUrls String[]  @default([])
+  isAutomated    Boolean   @default(false)
+  isSystemMessage Boolean   @default(false)
+  messageType    String    @default("text") // text, inquiry, booking_request, etc.
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id])
+  recipient      User         @relation("MessageReceiver", fields: [recipientId], references: [id])
+  booking        Booking?     @relation(fields: [bookingId], references: [id])
+  property       Property?    @relation(fields: [propertyId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([isRead])
+  @@index([bookingId])
+}
+
+model Conversation {
+  id              String    @id @default(uuid())
+  title           String?
+  participant1Id  String
+  participant2Id  String
+  lastMessageId   String?
+  bookingId       String?
+  propertyId      String?
+  status          String    @default("active") // active, archived, blocked
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  participant1    User      @relation("ConversationParticipant1", fields: [participant1Id], references: [id])
+  participant2    User      @relation("ConversationParticipant2", fields: [participant2Id], references: [id])
+  booking         Booking?  @relation(fields: [bookingId], references: [id])
+  property        Property? @relation(fields: [propertyId], references: [id])
+  messages        Message[]
+
+  @@index([participant1Id])
+  @@index([participant2Id])
+  @@index([bookingId])
+  @@index([propertyId])
+  @@index([lastActivityAt])
+}
+
+// AI related models
+model AiConversation {
+  id                  String       @id @default(uuid())
+  userId              String
+  sessionId           String
+  conversationState   Json         @default("{}")
+  extractedPreferences Json         @default("{}")
+  matchedProperties   String[]     @default([])
+  recommendedProperties String[]     @default([])
+  conversationSummary String?
+  lastUserMessage     String?
+  lastAiMessage       String?
+  intent              String?      // search, booking, support, etc.
+  entities            Json         @default("{}")
+  sentimentScore      Decimal?
+  feedbackRating      Int?
+  feedbackText        String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  endedAt             DateTime?
+
+  // Relations
+  user                User         @relation(fields: [userId], references: [id])
+  messages            AiMessage[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model AiMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  messageRole    String         // user, ai, system
+  messageText    String
+  tokensUsed     Int?
+  intent         String?
+  entities       Json           @default("{}")
+  sentimentScore Decimal?
+  createdAt      DateTime       @default(now())
+
+  // Relations
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+// User preferences and saved items
+model SavedProperty {
+  id             String   @id @default(uuid())
+  userId         String
+  propertyId     String
+  collectionName String   @default("Favorites")
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId, collectionName])
+  @@index([userId])
+  @@index([propertyId])
+}
+
+model SavedSearch {
+  id                 String    @id @default(uuid())
+  userId             String
+  searchName         String?
+  searchCriteria     Json
+  locationText       String?
+  latitude           Decimal?
+  longitude          Decimal?
+  checkInDate        DateTime? @db.Date
+  checkOutDate       DateTime? @db.Date
+  guests             Int?
+  priceMin           Decimal?
+  priceMax           Decimal?
+  propertyTypes      String[]  @default([])
+  amenities          String[]  @default([])
+  notificationEnabled Boolean   @default(false)
+  notificationFrequency String   @default("daily") // daily, weekly, instant
+  lastNotificationAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// User activity tracking
+model Notification {
+  id           String   @id @default(uuid())
+  userId       String
+  notificationType String   // booking_request, message, review, etc.
+  title        String
+  message      String
+  isRead       Boolean  @default(false)
+  readAt       DateTime?
+  actionUrl    String?
+  relatedId    String?  // Could be booking_id, message_id, etc.
+  relatedType  String?  // booking, message, review, etc.
+  priority     String   @default("normal") // low, normal, high, urgent
+  icon         String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model UserDevice {
+  id          String   @id @default(uuid())
+  userId      String
+  deviceToken String
+  deviceType  String   // ios, android, web
+  deviceName  String?
+  osVersion   String?
+  appVersion  String?
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceToken])
+  @@index([userId])
+  @@index([deviceToken])
+}
+
+model UserActivity {
+  id           String   @id @default(uuid())
+  userId       String
+  activityType String   // search, view_property, booking, message, etc.
+  activityData Json
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([activityType])
+  @@index([createdAt])
+}
+
+model PropertyView {
+  id                String   @id @default(uuid())
+  propertyId        String
+  userId            String?
+  sessionId         String?
+  viewDurationSeconds Int?
+  ipAddress         String?
+  userAgent         String?
+  referrerUrl       String?
+  isReturningView   Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  // Relations
+  property          Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user              User?    @relation(fields: [userId], references: [id])
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SearchLog {
+  id            String   @id @default(uuid())
+  userId        String?
+  sessionId     String?
+  searchQuery   Json
+  searchParams  Json
+  locationText  String?
+  latitude      Decimal?
+  longitude     Decimal?
+  resultsCount  Int?
+  searchTimestamp DateTime @default(now())
+  ipAddress     String?
+  userAgent     String?
+  searchSource  String   @default("manual") // manual, ai, recommendation, etc.
+  searchDurationMs Int?
+
+  // Relations
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([searchTimestamp])
+}
+
+// AI and ML related models
+model UserEmbedding {
+  id           String   @id @default(uuid())
+  userId       String
+  embeddingType String   // preference, behavioral, combined, etc.
+  embedding    Bytes    // Store as byte array, will convert to vector in application
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, embeddingType])
+  @@index([userId])
+}
+
+model PropertyEmbedding {
+  id           String   @id @default(uuid())
+  propertyId   String
+  embeddingType String   // description, amenities, combined, etc.
+  embedding    Bytes    // Store as byte array, will convert to vector in application
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, embeddingType])
+  @@index([propertyId])
+}
+
+// Location and geographic models
+model Location {
+  id              String            @id @default(uuid())
+  name            String
+  type            String            // city, neighborhood, region, country, etc.
+  parentId        String?
+  countryCode     String?
+  postalCode      String?
+  stateProvince   String?
+  latitude        Decimal?
+  longitude       Decimal?
+  timezone        String?
+  population      Int?
+  propertiesCount Int               @default(0)
+  averageRating   Decimal?
+  averagePrice    Decimal?
+  description     String?
+  features        Json              @default("{}")
+  safetyScore     Decimal?
+  walkabilityScore Decimal?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  parent          Location?         @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children        Location[]        @relation("LocationHierarchy")
+  attributes      LocationAttribute[]
+
+  @@unique([name, type, parentId])
+  @@index([parentId])
+  @@index([latitude, longitude])
+}
+
+model LocationAttribute {
+  id             String   @id @default(uuid())
+  locationId     String
+  attributeName  String
+  attributeValue String?
+  dataType       String   // string, number, boolean, json
+  source         String?  // census, yelp, user_generated, etc.
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  location     Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, attributeName])
+  @@index([locationId])
+}
+
+model AmenityPreference {
+  id               String   @id @default(uuid())
+  userId           String
+  amenityId        String
+  importanceScore  Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amenity          Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, amenityId])
+  @@index([userId])
+  @@index([amenityId])
+}
+
+model UserFeedback {
+  id             String   @id @default(uuid())
+  userId         String?
+  feedbackType   String   // ai_suggestion, search_results, etc.
+  feedbackText   String?
+  rating         Int?
+  contextData    Json?
+  pageUrl        String?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([feedbackType])
+}
+
+model SystemSetting {
+  id           String   @id @default(uuid())
+  settingKey   String   @unique
+  settingValue String
+  dataType     String   // string, number, boolean, json
+  description  String?
+  isPublic     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([settingKey])
+}
+
+model FeatureFlag {
+  id              String    @id @default(uuid())
+  flagKey         String    @unique
+  isEnabled       Boolean   @default(false)
+  description     String?
+  userPercentage  Int       @default(100)
+  userIds         String[]  @default([])
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([flagKey])
 }
