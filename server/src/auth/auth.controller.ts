@@ -1,10 +1,8 @@
 // src/auth/auth.controller.ts
 import { Controller, Post, Body, UseGuards, Get, Req, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PrivyAuthGuard } from './guards/privy-auth.guard';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -12,22 +10,14 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    @UseGuards(LocalAuthGuard)
+    @UseGuards(PrivyAuthGuard)
     @Post('login')
     @HttpCode(200)
-    @ApiOperation({ summary: 'Login with email and password' })
+    @ApiOperation({ summary: 'Login with Privy (supports email, social, and wallet login)' })
     @ApiResponse({ status: 200, description: 'Login successful' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     async login(@Req() req) {
         return this.authService.login(req.user);
-    }
-
-    @Post('register')
-    @ApiOperation({ summary: 'Register a new user' })
-    @ApiResponse({ status: 201, description: 'User registered successfully' })
-    @ApiResponse({ status: 409, description: 'Email already exists' })
-    async register(@Body() createUserDto: CreateUserDto) {
-        return this.authService.register(createUserDto);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -60,15 +50,5 @@ export class AuthController {
         @Body('refreshToken') refreshToken: string
     ) {
         return this.authService.logout(req.user.id, refreshToken);
-    }
-
-    @UseGuards(PrivyAuthGuard)
-    @Post('privy/login')
-    @HttpCode(200)
-    @ApiOperation({ summary: 'Login with Privy' })
-    @ApiResponse({ status: 200, description: 'Login successful' })
-    @ApiResponse({ status: 401, description: 'Unauthorized' })
-    async privyLogin(@Req() req) {
-        return this.authService.privyLogin(req.user);
     }
 }

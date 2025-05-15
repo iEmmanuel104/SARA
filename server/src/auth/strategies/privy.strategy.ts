@@ -1,16 +1,10 @@
-// src/auth/strategies/privy.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
-import * as jwt from 'jsonwebtoken';
 import axios from 'axios';
 
-/**
- * Passport strategy for Privy authentication
- * Validates Privy tokens and creates or retrieves the corresponding user
- */
 @Injectable()
 export class PrivyStrategy extends PassportStrategy(Strategy, 'privy') {
     constructor(
@@ -22,6 +16,10 @@ export class PrivyStrategy extends PassportStrategy(Strategy, 'privy') {
 
     /**
      * Validate the Privy token and find or create the user
+     * Supports all Privy authentication methods:
+     * - Email/Password
+     * - Social logins (Google, Apple, etc.)
+     * - Wallet connections (Ethereum, Solana)
      */
     async validate(req: any): Promise<any> {
         try {
@@ -40,7 +38,13 @@ export class PrivyStrategy extends PassportStrategy(Strategy, 'privy') {
                 return null;
             }
 
-            const { userId: privyUserId, email, walletAddress } = verificationResult;
+            const {
+                userId: privyUserId,
+                email,
+                walletAddress,
+                linkedAccounts,
+                userMetadata
+            } = verificationResult;
 
             // Check if the user exists by their Privy ID
             let user = await this.usersService.findByPrivyUserId(privyUserId);
@@ -56,24 +60,30 @@ export class PrivyStrategy extends PassportStrategy(Strategy, 'privy') {
                     privyUserId,
                     email,
                     walletAddress,
-                    firstName: email ? email.split('@')[0] : 'User', // Default first name
-                    lastName: '',
-                    // Set other default user properties
+                    firstName: userMetadata?.firstName || email?.split('@')[0] || 'User',
+                    lastName: userMetadata?.lastName || '',
+                    phoneNumber: userMetadata?.phoneNumber,
+                    preferredLanguage: userMetadata?.preferredLanguage || 'en',
+                    preferredCurrency: userMetadata?.preferredCurrency || 'USD',
+                    linkedAccounts: linkedAccounts || [],
                 };
 
                 user = await this.usersService.create(newUser);
-            } else if (
-                // Update the user if needed
-                (email && user.email !== email) ||
-                (walletAddress && user.walletAddress !== walletAddress) ||
-                (privyUserId && user.privyUserId !== privyUserId)
-            ) {
-                // Update with the latest info from Privy
-                user = await this.usersService.update(user.id, {
+            } else {
+                // Update the user with latest Privy data
+                const updates = {
                     privyUserId: privyUserId || user.privyUserId,
                     email: email || user.email,
                     walletAddress: walletAddress || user.walletAddress,
-                });
+                    firstName: userMetadata?.firstName || user.firstName,
+                    lastName: userMetadata?.lastName || user.lastName,
+                    phoneNumber: userMetadata?.phoneNumber || user.phoneNumber,
+                    preferredLanguage: userMetadata?.preferredLanguage || user.preferredLanguage,
+                    preferredCurrency: userMetadata?.preferredCurrency || user.preferredCurrency,
+                    linkedAccounts: linkedAccounts || user.linkedAccounts,
+                };
+
+                user = await this.usersService.update(user.id, updates);
             }
 
             return user;
@@ -83,42 +93,19 @@ export class PrivyStrategy extends PassportStrategy(Strategy, 'privy') {
         }
     }
 
-    /**
-     * Verify the Privy token with the Privy API
-     */
     private async verifyPrivyToken(token: string) {
         try {
-            const privyApiKey = this.configService.get<string>('PRIVY_API_KEY');
+            const response = await axios.get('https://auth.privy.io/api/v1/verify', {
+                headers: {
+                    'Authorization': `Bearer ${this.configService.get('PRIVY_APP_SECRET')}`,
+                    'Content-Type': 'application/json',
+                },
+                params: {
+                    token,
+                },
+            });
 
-            if (!privyApiKey) {
-                throw new Error('PRIVY_API_KEY is not configured');
-            }
-
-            // Verify the token with Privy's API
-            const response = await axios.post(
-                'https://auth.privy.io/api/v1/verify',
-                { token },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${privyApiKey}`,
-                    },
-                }
-            );
-
-            // Extract user information from the verified token
-            const { user } = response.data;
-
-            if (!user || !user.id) {
-                throw new Error('Invalid user data in Privy token');
-            }
-
-            // Return the user information
-            return {
-                userId: user.id,
-                email: user.email?.address,
-                walletAddress: user.wallet?.address,
-            };
+            return response.data;
         } catch (error) {
             console.error('Error verifying Privy token:', error);
             return null;

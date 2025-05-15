@@ -1,6 +1,6 @@
 // src/ai/tools/property-search.tool.ts
 import { Injectable } from '@nestjs/common';
-import { Tool } from 'coinbase-agent-kit/tools';
+import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class PropertySearchTool extends Tool {
         super();
     }
 
-    async _call(input: string): Promise<string> {
+    protected async _call(input: string): Promise<string> {
         try {
             const params = JSON.parse(input);
             const {
@@ -152,7 +152,7 @@ export class PropertySearchTool extends Tool {
                     base: property.basePrice,
                     currency: property.currency,
                     cleaning: property.cleaningFee,
-                    total: this.calculateTotalPrice(property, checkInDate, checkOutDate),
+                    total: this.calculateTotalPrice(property, checkIn ? new Date(checkIn) : undefined, checkOut ? new Date(checkOut) : undefined),
                 },
                 capacity: {
                     guests: property.capacityGuests,

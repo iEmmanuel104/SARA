@@ -1,11 +1,12 @@
 // src/ai/agent/sara-agent.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AgentExecutor, createOpenAIFunctionsAgent } from '@coinbase/agentkit';
 import { ChatOpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { ConfigService } from '@nestjs/config';
-import { Tool } from '@coinbase/agentkit/tools';
+import { Tool } from '@langchain/core/tools';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
+import { MemorySaver } from '@langchain/langgraph';
 
 @Injectable()
 export class SaraAgent {
@@ -66,20 +67,19 @@ export class SaraAgent {
       AI:
     `);
 
-        // Create the agent with Coinbase Agent Kit
-        const agent = await createOpenAIFunctionsAgent({
+        // Store buffered conversation history in memory
+        const memory = new MemorySaver();
+        const agentConfig = { configurable: { thread_id: "SARA Agent Chat" } };
+
+        // Create React Agent using the LLM and tools
+        const agent = createReactAgent({
             llm: this.model,
             tools,
-            prompt,
+            checkpointSaver: memory,
+            messageModifier: systemPrompt || defaultSystemPrompt,
         });
 
-        // Create and return the executor
-        return AgentExecutor.fromAgentAndTools({
-            agent,
-            tools,
-            verbose: this.configService.get<string>('NODE_ENV') === 'development',
-            maxIterations: 5,
-        });
+        return { agent, config: agentConfig };
     }
 
     /**
@@ -89,26 +89,35 @@ export class SaraAgent {
         userId: string,
         sessionId: string,
         message: string,
-        executor: AgentExecutor,
+        agent: any,
+        config: any,
         chatHistory: string,
         userPreferences: string,
         handlers: any,
     ) {
         try {
             // Execute the agent
-            const result = await executor.invoke(
+            const stream = await agent.stream(
                 {
-                    input: message,
+                    messages: [{ role: "user", content: message }],
                     chat_history: chatHistory,
                     user_preferences: userPreferences,
                 },
+                config,
                 { callbacks: handlers }
             );
 
-            // Save the conversation to the database
-            await this.saveConversation(userId, sessionId, message, result.output);
+            let result = '';
+            for await (const chunk of stream) {
+                if ("agent" in chunk) {
+                    result += chunk.agent.messages[0].content;
+                }
+            }
 
-            return result;
+            // Save the conversation to the database
+            await this.saveConversation(userId, sessionId, message, result);
+
+            return { output: result };
         } catch (error) {
             console.error('Error processing message:', error);
             throw error;

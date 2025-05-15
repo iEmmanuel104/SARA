@@ -1,6 +1,6 @@
 // src/ai/tools/booking-check.tool.ts
 import { Injectable } from '@nestjs/common';
-import { Tool } from 'coinbase-agent-kit/tools';
+import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()

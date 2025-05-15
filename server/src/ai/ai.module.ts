@@ -2,23 +2,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
-import { AiController } from './ai.controller';
-import { AiService } from './ai.service';
+import { AIController } from './ai.controller';
+import { AIService } from './ai.service';
 import { SaraAgent } from './agent/sara-agent';
+import { MemoryManager } from './memory/memory-manager';
+import { StreamingService } from './streaming/streaming-service';
 import { PropertySearchTool } from './tools/property-search.tool';
 import { BookingCheckTool } from './tools/booking-check.tool';
 import { UserPreferencesTool } from './tools/user-preferences.tool';
-import { MemoryManager } from './memory/memory-manager';
-import { StreamingService } from './streaming/streaming-service';
 
 @Module({
     imports: [
         ConfigModule,
         PrismaModule,
     ],
-    controllers: [AiController],
+    controllers: [AIController],
     providers: [
-        AiService,
+        AIService,
         SaraAgent,
         MemoryManager,
         StreamingService,
@@ -26,6 +26,6 @@ import { StreamingService } from './streaming/streaming-service';
         BookingCheckTool,
         UserPreferencesTool,
     ],
-    exports: [AiService],
+    exports: [AIService],
 })
-export class AiModule { }
+export class AIModule { }

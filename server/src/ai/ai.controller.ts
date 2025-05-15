@@ -1,64 +1,57 @@
 // src/ai/ai.controller.ts
-import { Controller, Post, Get, Body, Req, Res, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req, Res, UseGuards, Query, Param } from '@nestjs/common';
 import { Response } from 'express';
-import { AiService } from './ai.service';
+import { AIService } from './ai.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('ai')
-@Controller('api/v1/ai')
-export class AiController {
-    constructor(private aiService: AiService) { }
+@Controller('ai')
+export class AIController {
+    constructor(private readonly aiService: AIService) { }
 
     @Post('chat')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Process a chat message' })
     @ApiResponse({ status: 200, description: 'Chat message processed successfully' })
-    async chat(
+    async processChatMessage(
         @Req() req: any,
-        @Body() body: { message: string; sessionId: string },
+        @Body() body: { userId: string; message: string },
         @Res() res: Response,
     ) {
         const userId = req.user.id;
-        const { message, sessionId } = body;
+        const { message } = body;
 
         if (!message) {
             return res.status(400).json({ message: 'Message is required' });
         }
 
-        // Use a default session ID if not provided
-        const actualSessionId = sessionId || 'default-session';
+        // Set headers for streaming response
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
 
         // Process the message and return streaming response
-        const streamingResponse = await this.aiService.processChatMessage(
-            userId,
-            actualSessionId,
-            message,
-        );
+        const stream = await this.aiService.processChatMessage(userId, message);
 
-        // Return the streaming response
-        streamingResponse.headers.forEach((value, key) => {
-            res.setHeader(key, value);
-        });
+        // Pipe the stream to the response
+        for await (const chunk of stream) {
+            res.write(`data: ${chunk}\n\n`);
+        }
 
-        streamingResponse.body?.pipe(res);
+        res.end();
     }
 
-    @Get('recommendations')
+    @Get('recommendations/:userId')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Get property recommendations based on user preferences' })
     @ApiResponse({ status: 200, description: 'Property recommendations retrieved successfully' })
     async getRecommendations(
-        @Req() req: any,
-        @Query('count') count: number = 5,
+        @Param('userId') userId: string,
+        @Body() searchCriteria?: any
     ) {
-        const userId = req.user.id;
-
-        // Get recommendations based on user preferences
-        const recommendations = await this.aiService.getPropertyRecommendations(userId, count);
-
-        return recommendations;
+        return this.aiService.getPropertyRecommendations(userId, searchCriteria);
     }
 }

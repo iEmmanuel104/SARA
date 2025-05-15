@@ -1,0 +1,1797 @@
+## Models
+
+### OpenAI
+
+```ts
+// pnpm add @ai-sdk/openai
+
+import { openai } from "@ai-sdk/openai";
+
+const model = openai("gpt-4o");
+```
+
+### Anthropic
+
+```ts
+// pnpm add @ai-sdk/anthropic
+
+import { anthropic } from "@ai-sdk/anthropic";
+
+const model = anthropic("claude-3-5-sonnet-latest");
+```
+
+### Google
+
+```ts
+// pnpm add @ai-sdk/google
+
+import { google } from "@ai-sdk/google";
+
+const model = google("gemini-1.5-pro-latest");
+```
+
+### Local Models
+
+Connect to any OpenAI-compatible model using `createOpenAICompatible`.
+
+```ts
+// pnpm add @ai-sdk/openai-compatible
+
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { generateText } from "ai";
+
+const lmstudio = createOpenAICompatible({
+  name: "lmstudio",
+  baseUrl: "http://localhost:1234",
+});
+
+const localModel = lmstudio("local-model-name");
+
+await generateText({
+  model: localModel,
+  prompt: "Hello!",
+});
+```
+
+## Generating Text
+
+```ts
+import { generateText } from "ai";
+
+const { text } = await generateText({
+  prompt: "What is your name?",
+  model,
+});
+
+console.log(text);
+```
+
+## Streaming Text
+
+Returns an `AsyncIterable` of text chunks as soon as they are generated.
+
+```ts
+import { streamText } from "ai";
+
+const { textStream } = await streamText({
+  prompt: "What is your name?",
+  model,
+});
+
+for await (const chunk of textStream) {
+  process.stdout.write(chunk);
+}
+```
+
+## System Prompt
+
+Tell the AI how to behave.
+
+```ts
+import { generateText } from "ai";
+
+await generateText({
+  prompt: inputText,
+  model,
+  system: `Generate a summary of the text.`,
+});
+```
+
+## Pass Message History
+
+Pass `messages` instead of `prompt`.
+
+```ts
+import { generateText } from "ai";
+
+await generateText({
+  model,
+  messages: [
+    { role: "user", content: "Hello!" },
+    { role: "assistant", content: "Hi there!" },
+  ],
+});
+```
+
+## Get Structured Output
+
+```ts
+import { generateObject } from "ai";
+import { z } from "zod";
+
+await generateObject({
+  model,
+  schemaName: "Account information",
+  schema: z.object({
+    accountNumber: z
+      .string()
+      .describe("The account number."),
+    balance: z
+      .number()
+      .describe("The account balance."),
+  }),
+  system: `Get account information from the text.`,
+  prompt: `
+    Account Number: 123456
+    Balance: $100.00
+  `,
+});
+```
+
+## Generate An Enum
+
+Use `generateObject` and specify `output: "enum"`.
+
+```ts
+import { generateObject } from "ai";
+
+const { object } = await generateObject({
+  model,
+  prompt: inputText,
+  output: "enum",
+  enum: ["positive", "negative", "neutral"],
+  system: `Classify the sentiment of the text.`,
+});
+
+console.log(object);
+// "positive" | "negative" | "neutral"
+```
+
+## Passing Files TODO
+
+## Tracking Token Usage
+
+`usage` returns the tokens used in the prompt and completion.
+
+```ts
+import { generateText } from "ai";
+
+const { usage } = await generateText({
+  model,
+  prompt,
+});
+
+console.log(usage.promptTokens); // 10
+console.log(usage.completionTokens); // 20
+```
+
+import { anthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
+
+const model = anthropic("claude-3-5-haiku-latest");
+
+export const answerMyQuestion = async (
+  prompt: string,
+) => {
+  const { text } = await generateText({
+    model,
+    prompt,
+  });
+
+  return text;
+};
+
+const answer = await answerMyQuestion(
+  "what is the chemical formula for dihydrogen monoxide?",
+);
+
+console.log(answer);
+
+
+
+
+import { anthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
+
+const model = anthropic("claude-3-5-haiku-latest");
+
+export const answerMyQuestion = async (
+  prompt: string,
+) => {
+  const { text } = await generateText({
+    model,
+    prompt,
+  });
+
+  return text;
+};
+
+const answer = await answerMyQuestion(
+  "what is the chemical formula for dihydrogen monoxide?",
+);
+
+console.log(answer);
+
+
+import { streamText } from "ai";
+import { smallModel } from "../../_shared/models.ts";
+
+const model = smallModel;
+
+/**
+ * Instead of generating the text, we are now streaming it!
+ */
+export const answerMyQuestion = async (
+  prompt: string,
+) => {
+  const { textStream } = streamText({
+    model,
+    prompt,
+  });
+
+  // The textStream is an AsyncIterable, so it can be
+  // iterated over like an array.
+  for await (const text of textStream) {
+    process.stdout.write(text);
+  }
+
+  return textStream;
+};
+
+await answerMyQuestion(
+  "What is the color of the sun?",
+);
+
+import { anthropic } from "@ai-sdk/anthropic";
+import { openai } from "@ai-sdk/openai";
+import { generateText, type LanguageModel } from "ai";
+
+export const ask = async (
+  prompt: string,
+  model: LanguageModel,
+) => {
+  const { text } = await generateText({
+    model,
+    prompt,
+  });
+
+  return text;
+};
+
+const prompt = `Tell me a story about your grandmother.`;
+
+const anthropicResult = await ask(
+  prompt,
+  anthropic("claude-3-5-haiku-latest"),
+);
+
+console.log(anthropicResult);
+
+const openaiResult = await ask(
+  prompt,
+  openai("gpt-4o-mini-2024-07-18"),
+);
+
+console.log(openaiResult);
+
+
+import { type CoreMessage } from "ai";
+import { startServer } from "./server.ts";
+
+const messagesToSend: CoreMessage[] = [
+  {
+    role: "user",
+    content: "What's the capital of Wales?",
+  },
+];
+
+const server = await startServer();
+
+const response = await fetch(
+  "http://localhost:4317/api/get-completions",
+  {
+    method: "POST",
+    body: JSON.stringify(messagesToSend),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+);
+
+const newMessages =
+  (await response.json()) as CoreMessage[];
+
+const allMessages = [
+  ...messagesToSend,
+  ...newMessages,
+];
+
+console.dir(allMessages, { depth: null });
+
+server.close();
+
+
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { getLocalhost } from "../../_shared/utils.ts";
+import { generateText } from "ai";
+
+const lmstudio = createOpenAICompatible({
+  name: "lmstudio",
+  baseURL: `http://${getLocalhost()}:1234/v1`,
+});
+
+const model = lmstudio("");
+
+export const askLocalLLMQuestion = async (
+  input: string,
+) => {
+  const { text } = await generateText({
+    model,
+    prompt: input,
+    maxRetries: 0,
+  });
+
+  return text;
+};
+
+const input = `Tell me a story about your grandmother.`;
+
+const localLLMResult =
+  await askLocalLLMQuestion(input);
+
+console.log(localLLMResult);
+
+import { generateObject } from "ai";
+import { z } from "zod";
+import { smallToolCallingModel } from "../../_shared/models.ts";
+
+const model = smallToolCallingModel;
+
+const schema = z.object({
+  recipe: z.object({
+    name: z
+      .string()
+      .describe("The title of the recipe"),
+    ingredients: z
+      .array(
+        z.object({
+          name: z.string(),
+          amount: z.string(),
+        }),
+      )
+      .describe(
+        "The ingredients needed for the recipe",
+      ),
+    steps: z
+      .array(z.string())
+      .describe("The steps to make the recipe"),
+  }),
+});
+
+export const createRecipe = async (prompt: string) => {
+  const { object } = await generateObject({
+    model,
+    schema,
+    prompt,
+    schemaName: "Recipe",
+    system:
+      `You are helping a user create a recipe. ` +
+      `Use British English variants of ingredient names,` +
+      `like Coriander over Cilantro.`,
+  });
+
+  return object.recipe;
+};
+
+const recipe = await createRecipe(
+  "How to make baba ganoush?",
+);
+
+console.dir(recipe, { depth: null });
+
+
+import { streamObject } from "ai";
+import { z } from "zod";
+import { smallOpenAiModel } from "../../_shared/models.ts";
+
+const model = smallOpenAiModel;
+
+const schema = z.object({
+  recipe: z.object({
+    name: z
+      .string()
+      .describe("The title of the recipe"),
+    ingredients: z
+      .array(
+        z.object({
+          name: z.string(),
+          amount: z.string(),
+        }),
+      )
+      .describe(
+        "The ingredients needed for the recipe",
+      ),
+    steps: z
+      .array(z.string())
+      .describe("The steps to make the recipe"),
+  }),
+});
+
+export const createRecipe = async (prompt: string) => {
+  const result = await streamObject({
+    model,
+    system:
+      `You are helping a user create a recipe. ` +
+      `Use British English variants of ingredient names,` +
+      `like Coriander over Cilantro.`,
+    schemaName: "Recipe",
+    schema,
+    prompt,
+  });
+
+  for await (const obj of result.partialObjectStream) {
+    console.clear();
+    console.dir(obj, { depth: null });
+  }
+
+  const finalObject = await result.object;
+
+  return finalObject.recipe;
+};
+
+await createRecipe("How to make hummus?");
+
+
+
+import { generateObject } from "ai";
+import { smallAnthropicModel } from "../../_shared/models.ts";
+
+const model = smallAnthropicModel;
+
+export const classifySentiment = async (
+  text: string,
+) => {
+  const { object } = await generateObject({
+    model,
+    output: "enum",
+    enum: ["positive", "negative", "neutral"],
+    prompt: text,
+    system:
+      `Classify the sentiment of the text as either ` +
+      `positive, negative, or neutral.`,
+  });
+
+  return object;
+};
+
+const result = await classifySentiment(
+  `This is terrible`,
+);
+
+console.log(result); // negative
+
+
+import { z } from "zod";
+import { generateObject } from "ai";
+import { smallAnthropicModel } from "../../_shared/models.ts";
+
+const schema = z.object({
+  name: z.string().describe("The name of the user"),
+  age: z.number().describe("The user's age"),
+  email: z
+    .string()
+    .email()
+    .describe(
+      "The user's email address, @example.com",
+    ),
+});
+
+export const createFakeUsers = async (
+  input: string,
+) => {
+  const { object } = await generateObject({
+    model: smallAnthropicModel,
+    prompt: input,
+    system: `You are generating fake user data.`,
+    output: "array",
+    schema,
+  });
+
+  return object;
+};
+
+const fakeUsers = await createFakeUsers(
+  "Generate 5 fake users from the UK.",
+);
+
+console.dir(fakeUsers, { depth: null });
+
+import { generateText } from "ai";
+import { flagshipAnthropicModel } from "../../_shared/models.ts";
+
+const model = flagshipAnthropicModel;
+
+const systemPrompt =
+  `You will receive an image. ` +
+  `Please create an alt text for the image. ` +
+  `Be concise. ` +
+  `Use adjectives only when necessary. ` +
+  `Do not pass 160 characters. ` +
+  `Use simple language. `;
+
+export const describeImage = async (
+  imageUrl: string,
+) => {
+  const { text } = await generateText({
+    model,
+    system: systemPrompt,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            image: new URL(imageUrl),
+          },
+        ],
+      },
+    ],
+  });
+
+  return text;
+};
+
+const description = await describeImage(
+  "https://github.com/ai-hero-dev/ai-hero/blob/main/internal/assets/fireworks.jpg?raw=true",
+);
+
+console.log(description);
+
+import { z } from "zod";
+import { generateObject } from "ai";
+import { pdfModel as model } from "../../_shared/models.ts";
+import { readFileSync } from "fs";
+import path from "path";
+
+const schema = z
+  .object({
+    total: z
+      .number()
+      .describe("The total amount of the invoice."),
+    currency: z
+      .string()
+      .describe("The currency of the total amount."),
+    invoiceNumber: z
+      .string()
+      .describe("The invoice number."),
+    companyAddress: z
+      .string()
+      .describe(
+        "The address of the company or person issuing the invoice.",
+      ),
+    companyName: z
+      .string()
+      .describe(
+        "The name of the company issuing the invoice.",
+      ),
+    invoiceeAddress: z
+      .string()
+      .describe(
+        "The address of the company or person receiving the invoice.",
+      ),
+  })
+  .describe("The extracted data from the invoice.");
+
+export const extractDataFromInvoice = async (
+  invoicePath: string,
+) => {
+  const { object } = await generateObject({
+    model,
+    system:
+      `You will receive an invoice. ` +
+      `Please extract the data from the invoice.`,
+    schema,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "file",
+            data: readFileSync(invoicePath),
+            mimeType: "application/pdf",
+          },
+        ],
+      },
+    ],
+  });
+
+  return object;
+};
+
+const result = await extractDataFromInvoice(
+  path.join(import.meta.dirname, "./invoice-1.pdf"),
+);
+
+console.dir(result, { depth: null });
+
+
+
+import { lmstudio } from "../../_shared/models.ts";
+import {
+  embedMany,
+  embed,
+  cosineSimilarity,
+} from "ai";
+
+export const localModel =
+  lmstudio.textEmbeddingModel("");
+
+const values = ["Dog", "Cat", "Car", "Bike"];
+
+const { embeddings } = await embedMany({
+  model: localModel,
+  values,
+});
+
+const vectorDatabase = embeddings.map(
+  (embedding, index) => ({
+    value: values[index]!,
+    embedding,
+  }),
+);
+
+const searchTerm = await embed({
+  model: localModel,
+  value: "Pedal",
+});
+
+const entries = vectorDatabase.map((entry) => {
+  return {
+    value: entry.value,
+    similarity: cosineSimilarity(
+      entry.embedding,
+      searchTerm.embedding,
+    ),
+  };
+});
+
+const sortedEntries = entries.sort(
+  (a, b) => b.similarity - a.similarity,
+);
+
+console.dir(sortedEntries, { depth: null });
+
+import { smallToolCallingModel } from "../../_shared/models.ts";
+import { tool } from "ai";
+import { z } from "zod";
+import { generateText } from "ai";
+
+const model = smallToolCallingModel;
+
+const logToConsoleTool = tool({
+  description: "Log a message to the console",
+  parameters: z.object({
+    message: z
+      .string()
+      .describe("The message to log to the console"),
+  }),
+  execute: async ({ message }) => {
+    console.log(message);
+  },
+});
+
+const logToConsole = async (prompt: string) => {
+  const { steps } = await generateText({
+    model,
+    prompt,
+    system:
+      `Your only role in life is to log ` +
+      `messages to the console. ` +
+      `Use the tool provided to log the ` +
+      `prompt to the console.`,
+    tools: {
+      logToConsole: logToConsoleTool,
+    },
+  });
+
+  console.dir(steps[0]?.toolCalls, { depth: null });
+};
+
+await logToConsole("Hello world!");
+
+import { streamText, tool } from "ai";
+import { z } from "zod";
+import { smallToolCallingModel } from "../../_shared/models.ts";
+
+const model = smallToolCallingModel;
+
+const getWeatherTool = tool({
+  description:
+    "Get the current weather in the specified city",
+  parameters: z.object({
+    city: z
+      .string()
+      .describe("The city to get the weather for"),
+  }),
+  execute: async ({ city }) => {
+    return `The weather in ${city} is 25°C and sunny.`;
+  },
+});
+
+const askAQuestion = async (prompt: string) => {
+  const { textStream } = await streamText({
+    model,
+    prompt,
+    tools: {
+      getWeather: getWeatherTool,
+    },
+    maxSteps: 2,
+  });
+
+  for await (const text of textStream) {
+    process.stdout.write(text);
+  }
+};
+
+await askAQuestion(`What's the weather in London?`);
+
+import { generateText, tool } from "ai";
+import { z } from "zod";
+import { smallModel } from "../../_shared/models.ts";
+
+const model = smallModel;
+
+const systemPrompt =
+  `You are interacting with the Star Wars API. ` +
+  `Use the tools provided to fetch data from the API. ` +
+  `Make a plan to find the data, then enact that plan step-by-step. ` +
+  `If you cannot find a record in the Star Wars API, use the index pages to help: ` +
+  `
+    <index_pages>
+
+    vehicles: https://swapi.py4e.com/api/vehicles/
+    planets: https://swapi.py4e.com/api/planets/
+    films: https://swapi.py4e.com/api/films/
+    people: https://swapi.py4e.com/api/people/
+
+    </index_pages>
+  `;
+
+export const askSwapiApi = async (prompt: string) => {
+  // 1. Call the Vercel SDK, passing in our model (gpt-4o-mini)
+  // and the system prompt (next image)
+  const { steps, text } = await generateText({
+    model,
+    system: systemPrompt,
+    prompt,
+    tools: {
+      // 2. We pass in a tool that calls the Star Wars API
+      callSwapiApi: tool({
+        description: "Call the Star Wars API",
+        execute: async ({ endpoint }) => {
+          const response = await fetch(endpoint);
+          return response.json();
+        },
+        parameters: z.object({
+          endpoint: z
+            .string()
+            .url()
+            .startsWith("https://swapi.py4e.com/api/")
+            .describe(
+              "The URL to fetch data from, " +
+                "such as https://swapi.py4e.com/api/films/",
+            ),
+        }),
+      }),
+    },
+    // 3. maxSteps makes the model perform multiple
+    // cycles, allowing it to interact with the tool
+    // multiple times and fetch more data
+    maxSteps: 10,
+  });
+
+  return { steps, text };
+};
+
+
+
+
+
+
+
+
+
+
+
+import {
+  AgentKit,
+  PrivyWalletProvider,
+  wethActionProvider,
+  walletActionProvider,
+  erc20ActionProvider,
+  pythActionProvider,
+  PrivyWalletConfig,
+  PrivyEvmWalletProvider,
+  PrivySvmWalletProvider,
+  cdpApiActionProvider,
+  splActionProvider,
+  PrivyEvmDelegatedEmbeddedWalletProvider,
+} from "@coinbase/agentkit";
+import { getLangChainTools } from "@coinbase/agentkit-langchain";
+import { HumanMessage } from "@langchain/core/messages";
+import { MemorySaver } from "@langchain/langgraph";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { ChatOpenAI } from "@langchain/openai";
+import * as dotenv from "dotenv";
+import * as readline from "readline";
+import fs from "fs";
+
+dotenv.config();
+
+const WALLET_DATA_FILE = "wallet_data.txt";
+
+/**
+ * Validates that required environment variables are set
+ *
+ * @throws {Error} - If required environment variables are missing
+ * @returns {void}
+ */
+function validateEnvironment(): void {
+  const missingVars: string[] = [];
+
+  // Check required variables
+  const requiredVars = ["OPENAI_API_KEY", "PRIVY_APP_ID", "PRIVY_APP_SECRET"];
+  requiredVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    }
+  });
+
+  // Exit if any required variables are missing
+  if (missingVars.length > 0) {
+    console.error("Error: Required environment variables are not set");
+    missingVars.forEach(varName => {
+      console.error(`${varName}=your_${varName.toLowerCase()}_here`);
+    });
+    process.exit(1);
+  }
+}
+
+// Add this right after imports and before any other code
+validateEnvironment();
+
+/**
+ * Initialize the agent with Privy Agentkit
+ *
+ * @returns Agent executor and config
+ */
+async function initializeAgent() {
+  try {
+    // Initialize LLM
+    const llm = new ChatOpenAI({
+      model: "gpt-4o-mini",
+    });
+
+    let walletProvider:
+      | PrivyEvmWalletProvider
+      | PrivySvmWalletProvider
+      | PrivyEvmDelegatedEmbeddedWalletProvider;
+
+    const networkId = process.env.NETWORK_ID;
+
+    if (networkId?.includes("solana")) {
+      const config: PrivyWalletConfig = {
+        appId: process.env.PRIVY_APP_ID as string,
+        appSecret: process.env.PRIVY_APP_SECRET as string,
+        walletId: process.env.PRIVY_WALLET_ID as string,
+        authorizationPrivateKey: process.env.PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY,
+        authorizationKeyId: process.env.PRIVY_WALLET_AUTHORIZATION_KEY_ID,
+        chainType: "solana",
+        networkId,
+      };
+
+      // Try to load saved wallet data
+      if (fs.existsSync(WALLET_DATA_FILE)) {
+        const savedWallet = JSON.parse(fs.readFileSync(WALLET_DATA_FILE, "utf8"));
+        config.walletId = savedWallet.walletId;
+        config.authorizationPrivateKey = savedWallet.authorizationPrivateKey;
+        config.networkId = savedWallet.networkId;
+      }
+
+      walletProvider = await PrivyWalletProvider.configureWithWallet(config);
+    } else {
+      const config: PrivyWalletConfig = {
+        appId: process.env.PRIVY_APP_ID as string,
+        appSecret: process.env.PRIVY_APP_SECRET as string,
+        chainId: process.env.CHAIN_ID,
+        walletId: process.env.PRIVY_WALLET_ID as string,
+        authorizationPrivateKey: process.env.PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY,
+        authorizationKeyId: process.env.PRIVY_WALLET_AUTHORIZATION_KEY_ID,
+        // walletType: "embedded", // Uncomment to use delegated embedded wallets (makes walletId required)
+      };
+
+      // Try to load saved wallet data
+      if (fs.existsSync(WALLET_DATA_FILE)) {
+        const savedWallet = JSON.parse(fs.readFileSync(WALLET_DATA_FILE, "utf8"));
+        config.walletId = savedWallet.walletId;
+        config.authorizationPrivateKey = savedWallet.authorizationPrivateKey;
+
+        if (savedWallet.chainId) {
+          console.log("Found chainId in wallet_data.txt:", savedWallet.chainId);
+          config.chainId = savedWallet.chainId;
+        }
+      }
+
+      if (!config.chainId) {
+        console.log("Warning: CHAIN_ID not set, defaulting to 84532 (base-sepolia)");
+        config.chainId = "84532";
+      }
+
+      walletProvider = await PrivyWalletProvider.configureWithWallet(config);
+    }
+
+    // Initialize AgentKit
+    const agentkit = await AgentKit.from({
+      walletProvider,
+      actionProviders: [
+        wethActionProvider(),
+        pythActionProvider(),
+        walletActionProvider(),
+        erc20ActionProvider(),
+        cdpApiActionProvider({
+          apiKeyName: process.env.CDP_API_KEY_NAME as string,
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY as string,
+        }),
+        splActionProvider(),
+      ],
+    });
+
+    const tools = await getLangChainTools(agentkit);
+
+    // Store buffered conversation history in memory
+    const memory = new MemorySaver();
+    const agentConfig = { configurable: { thread_id: "Privy AgentKit Chatbot Example!" } };
+
+    // Create React Agent using the LLM and Privy AgentKit tools
+    const agent = createReactAgent({
+      llm,
+      tools,
+      checkpointSaver: memory,
+      messageModifier: `
+        You are a helpful agent with a Privy server wallet that can interact onchain using the Coinbase Developer
+        Platform AgentKit. You are empowered to interact onchain using your tools. If you ever need funds, you can
+        request them from the faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet
+        details and request funds from the user. Before executing your first action, get the wallet details to see
+        what network you're on. If there is a 5XX (internal) HTTP error code, ask the user to try again later. If
+        someone asks you to do something you can't do with your currently available tools, you must say so, and
+        encourage them to implement it themselves using the CDP SDK + Agentkit, recommend they go to
+        docs.cdp.coinbase.com for more information. Be concise and helpful with your responses. Refrain from
+        restating your tools' descriptions unless it is explicitly requested.
+        `,
+    });
+
+    // Save wallet data
+    const exportedWallet = walletProvider.exportWallet();
+    fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
+
+    return { agent, config: agentConfig };
+  } catch (error) {
+    console.error("Failed to initialize agent:", error);
+    throw error; // Re-throw to be handled by caller
+  }
+}
+
+/**
+ * Run the agent autonomously with specified intervals
+ *
+ * @param agent - The agent executor
+ * @param config - Agent configuration
+ * @param interval - Time interval between actions in seconds
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function runAutonomousMode(agent: any, config: any, interval = 10) {
+  console.log("Starting autonomous mode...");
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const thought =
+        "Be creative and do something interesting on the blockchain. " +
+        "Choose an action or set of actions and execute it that highlights your abilities.";
+
+      const stream = await agent.stream({ messages: [new HumanMessage(thought)] }, config);
+
+      for await (const chunk of stream) {
+        if ("agent" in chunk) {
+          console.log(chunk.agent.messages[0].content);
+        } else if ("tools" in chunk) {
+          console.log(chunk.tools.messages[0].content);
+        }
+        console.log("-------------------");
+      }
+
+      await new Promise(resolve => setTimeout(resolve, interval * 1000));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error:", error.message);
+      }
+      process.exit(1);
+    }
+  }
+}
+
+/**
+ * Run the agent interactively based on user input
+ *
+ * @param agent - The agent executor
+ * @param config - Agent configuration
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function runChatMode(agent: any, config: any) {
+  console.log("Starting chat mode... Type 'exit' to end.");
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const userInput = await question("\nPrompt: ");
+
+      if (userInput.toLowerCase() === "exit") {
+        break;
+      }
+
+      const stream = await agent.stream({ messages: [new HumanMessage(userInput)] }, config);
+
+      for await (const chunk of stream) {
+        if ("agent" in chunk) {
+          console.log(chunk.agent.messages[0].content);
+        } else if ("tools" in chunk) {
+          console.log(chunk.tools.messages[0].content);
+        }
+        console.log("-------------------");
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error:", error.message);
+    }
+    process.exit(1);
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * Choose whether to run in autonomous or chat mode based on user input
+ *
+ * @returns Selected mode
+ */
+async function chooseMode(): Promise<"chat" | "auto"> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    console.log("\nAvailable modes:");
+    console.log("1. chat    - Interactive chat mode");
+    console.log("2. auto    - Autonomous action mode");
+
+    const choice = (await question("\nChoose a mode (enter number or name): "))
+      .toLowerCase()
+      .trim();
+
+    if (choice === "1" || choice === "chat") {
+      rl.close();
+      return "chat";
+    } else if (choice === "2" || choice === "auto") {
+      rl.close();
+      return "auto";
+    }
+    console.log("Invalid choice. Please try again.");
+  }
+}
+
+/**
+ * Start the chatbot agent
+ */
+async function main() {
+  try {
+    const { agent, config } = await initializeAgent();
+    const mode = await chooseMode();
+
+    if (mode === "chat") {
+      await runChatMode(agent, config);
+    } else {
+      await runAutonomousMode(agent, config);
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error:", error.message);
+    }
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  console.log("Starting Agent...");
+  main().catch(error => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+import {
+  AgentKit,
+  PrivyWalletProvider,
+  wethActionProvider,
+  walletActionProvider,
+  erc20ActionProvider,
+  pythActionProvider,
+  PrivyWalletConfig,
+  PrivyEvmWalletProvider,
+  PrivySvmWalletProvider,
+  cdpApiActionProvider,
+  splActionProvider,
+  PrivyEvmDelegatedEmbeddedWalletProvider,
+} from "@coinbase/agentkit";
+import { getLangChainTools } from "@coinbase/agentkit-langchain";
+import { HumanMessage } from "@langchain/core/messages";
+import { MemorySaver } from "@langchain/langgraph";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { ChatOpenAI } from "@langchain/openai";
+import * as dotenv from "dotenv";
+import * as readline from "readline";
+import fs from "fs";
+
+dotenv.config();
+
+const WALLET_DATA_FILE = "wallet_data.txt";
+
+/**
+ * Validates that required environment variables are set
+ *
+ * @throws {Error} - If required environment variables are missing
+ * @returns {void}
+ */
+function validateEnvironment(): void {
+  const missingVars: string[] = [];
+
+  // Check required variables
+  const requiredVars = ["OPENAI_API_KEY", "PRIVY_APP_ID", "PRIVY_APP_SECRET"];
+  requiredVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    }
+  });
+
+  // Exit if any required variables are missing
+  if (missingVars.length > 0) {
+    console.error("Error: Required environment variables are not set");
+    missingVars.forEach(varName => {
+      console.error(`${varName}=your_${varName.toLowerCase()}_here`);
+    });
+    process.exit(1);
+  }
+}
+
+// Add this right after imports and before any other code
+validateEnvironment();
+
+/**
+ * Initialize the agent with Privy Agentkit
+ *
+ * @returns Agent executor and config
+ */
+async function initializeAgent() {
+  try {
+    // Initialize LLM
+    const llm = new ChatOpenAI({
+      model: "gpt-4o-mini",
+    });
+
+    let walletProvider:
+      | PrivyEvmWalletProvider
+      | PrivySvmWalletProvider
+      | PrivyEvmDelegatedEmbeddedWalletProvider;
+
+    const networkId = process.env.NETWORK_ID;
+
+    if (networkId?.includes("solana")) {
+      const config: PrivyWalletConfig = {
+        appId: process.env.PRIVY_APP_ID as string,
+        appSecret: process.env.PRIVY_APP_SECRET as string,
+        walletId: process.env.PRIVY_WALLET_ID as string,
+        authorizationPrivateKey: process.env.PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY,
+        authorizationKeyId: process.env.PRIVY_WALLET_AUTHORIZATION_KEY_ID,
+        chainType: "solana",
+        networkId,
+      };
+
+      // Try to load saved wallet data
+      if (fs.existsSync(WALLET_DATA_FILE)) {
+        const savedWallet = JSON.parse(fs.readFileSync(WALLET_DATA_FILE, "utf8"));
+        config.walletId = savedWallet.walletId;
+        config.authorizationPrivateKey = savedWallet.authorizationPrivateKey;
+        config.networkId = savedWallet.networkId;
+      }
+
+      walletProvider = await PrivyWalletProvider.configureWithWallet(config);
+    } else {
+      const config: PrivyWalletConfig = {
+        appId: process.env.PRIVY_APP_ID as string,
+        appSecret: process.env.PRIVY_APP_SECRET as string,
+        chainId: process.env.CHAIN_ID,
+        walletId: process.env.PRIVY_WALLET_ID as string,
+        authorizationPrivateKey: process.env.PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY,
+        authorizationKeyId: process.env.PRIVY_WALLET_AUTHORIZATION_KEY_ID,
+        // walletType: "embedded", // Uncomment to use delegated embedded wallets (makes walletId required)
+      };
+
+      // Try to load saved wallet data
+      if (fs.existsSync(WALLET_DATA_FILE)) {
+        const savedWallet = JSON.parse(fs.readFileSync(WALLET_DATA_FILE, "utf8"));
+        config.walletId = savedWallet.walletId;
+        config.authorizationPrivateKey = savedWallet.authorizationPrivateKey;
+
+        if (savedWallet.chainId) {
+          console.log("Found chainId in wallet_data.txt:", savedWallet.chainId);
+          config.chainId = savedWallet.chainId;
+        }
+      }
+
+      if (!config.chainId) {
+        console.log("Warning: CHAIN_ID not set, defaulting to 84532 (base-sepolia)");
+        config.chainId = "84532";
+      }
+
+      walletProvider = await PrivyWalletProvider.configureWithWallet(config);
+    }
+
+    // Initialize AgentKit
+    const agentkit = await AgentKit.from({
+      walletProvider,
+      actionProviders: [
+        wethActionProvider(),
+        pythActionProvider(),
+        walletActionProvider(),
+        erc20ActionProvider(),
+        cdpApiActionProvider({
+          apiKeyName: process.env.CDP_API_KEY_NAME as string,
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY as string,
+        }),
+        splActionProvider(),
+      ],
+    });
+
+    const tools = await getLangChainTools(agentkit);
+
+    // Store buffered conversation history in memory
+    const memory = new MemorySaver();
+    const agentConfig = { configurable: { thread_id: "Privy AgentKit Chatbot Example!" } };
+
+    // Create React Agent using the LLM and Privy AgentKit tools
+    const agent = createReactAgent({
+      llm,
+      tools,
+      checkpointSaver: memory,
+      messageModifier: `
+        You are a helpful agent with a Privy server wallet that can interact onchain using the Coinbase Developer
+        Platform AgentKit. You are empowered to interact onchain using your tools. If you ever need funds, you can
+        request them from the faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet
+        details and request funds from the user. Before executing your first action, get the wallet details to see
+        what network you're on. If there is a 5XX (internal) HTTP error code, ask the user to try again later. If
+        someone asks you to do something you can't do with your currently available tools, you must say so, and
+        encourage them to implement it themselves using the CDP SDK + Agentkit, recommend they go to
+        docs.cdp.coinbase.com for more information. Be concise and helpful with your responses. Refrain from
+        restating your tools' descriptions unless it is explicitly requested.
+        `,
+    });
+
+    // Save wallet data
+    const exportedWallet = walletProvider.exportWallet();
+    fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
+
+    return { agent, config: agentConfig };
+  } catch (error) {
+    console.error("Failed to initialize agent:", error);
+    throw error; // Re-throw to be handled by caller
+  }
+}
+
+/**
+ * Run the agent autonomously with specified intervals
+ *
+ * @param agent - The agent executor
+ * @param config - Agent configuration
+ * @param interval - Time interval between actions in seconds
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function runAutonomousMode(agent: any, config: any, interval = 10) {
+  console.log("Starting autonomous mode...");
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const thought =
+        "Be creative and do something interesting on the blockchain. " +
+        "Choose an action or set of actions and execute it that highlights your abilities.";
+
+      const stream = await agent.stream({ messages: [new HumanMessage(thought)] }, config);
+
+      for await (const chunk of stream) {
+        if ("agent" in chunk) {
+          console.log(chunk.agent.messages[0].content);
+        } else if ("tools" in chunk) {
+          console.log(chunk.tools.messages[0].content);
+        }
+        console.log("-------------------");
+      }
+
+      await new Promise(resolve => setTimeout(resolve, interval * 1000));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error:", error.message);
+      }
+      process.exit(1);
+    }
+  }
+}
+
+/**
+ * Run the agent interactively based on user input
+ *
+ * @param agent - The agent executor
+ * @param config - Agent configuration
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function runChatMode(agent: any, config: any) {
+  console.log("Starting chat mode... Type 'exit' to end.");
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const userInput = await question("\nPrompt: ");
+
+      if (userInput.toLowerCase() === "exit") {
+        break;
+      }
+
+      const stream = await agent.stream({ messages: [new HumanMessage(userInput)] }, config);
+
+      for await (const chunk of stream) {
+        if ("agent" in chunk) {
+          console.log(chunk.agent.messages[0].content);
+        } else if ("tools" in chunk) {
+          console.log(chunk.tools.messages[0].content);
+        }
+        console.log("-------------------");
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error:", error.message);
+    }
+    process.exit(1);
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * Choose whether to run in autonomous or chat mode based on user input
+ *
+ * @returns Selected mode
+ */
+async function chooseMode(): Promise<"chat" | "auto"> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    console.log("\nAvailable modes:");
+    console.log("1. chat    - Interactive chat mode");
+    console.log("2. auto    - Autonomous action mode");
+
+    const choice = (await question("\nChoose a mode (enter number or name): "))
+      .toLowerCase()
+      .trim();
+
+    if (choice === "1" || choice === "chat") {
+      rl.close();
+      return "chat";
+    } else if (choice === "2" || choice === "auto") {
+      rl.close();
+      return "auto";
+    }
+    console.log("Invalid choice. Please try again.");
+  }
+}
+
+/**
+ * Start the chatbot agent
+ */
+async function main() {
+  try {
+    const { agent, config } = await initializeAgent();
+    const mode = await chooseMode();
+
+    if (mode === "chat") {
+      await runChatMode(agent, config);
+    } else {
+      await runAutonomousMode(agent, config);
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error:", error.message);
+    }
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  console.log("Starting Agent...");
+  main().catch(error => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+}
+
+
+
+
+
+import {
+  AgentKit,
+  cdpApiActionProvider,
+  erc721ActionProvider,
+  pythActionProvider,
+  walletActionProvider,
+  SmartWalletProvider,
+} from "@coinbase/agentkit";
+import { getVercelAITools } from "@coinbase/agentkit-vercel-ai-sdk";
+import { openai } from "@ai-sdk/openai";
+import { generateId, Message, streamText, ToolSet } from "ai";
+import * as dotenv from "dotenv";
+import * as readline from "readline";
+import * as fs from "fs";
+import { Address, Hex } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+
+dotenv.config();
+
+type WalletData = {
+  privateKey: Hex;
+  smartWalletAddress: Address;
+};
+
+/**
+ * Validates that required environment variables are set
+ *
+ * @throws {Error} - If required environment variables are missing
+ * @returns {void}
+ */
+function validateEnvironment(): void {
+  const missingVars: string[] = [];
+
+  // Check required variables
+  const requiredVars = ["OPENAI_API_KEY", "CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY"];
+  requiredVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    }
+  });
+
+  // Exit if any required variables are missing
+  if (missingVars.length > 0) {
+    console.error("Error: Required environment variables are not set");
+    missingVars.forEach(varName => {
+      console.error(`${varName}=your_${varName.toLowerCase()}_here`);
+    });
+    process.exit(1);
+  }
+
+  // Warn about optional NETWORK_ID
+  if (!process.env.NETWORK_ID) {
+    console.warn("Warning: NETWORK_ID not set, defaulting to base-sepolia testnet");
+  }
+}
+
+// Add this right after imports and before any other code
+validateEnvironment();
+
+const system = `You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit. You are
+empowered to interact onchain using your tools. If you ever need funds, you can request them from the
+faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet details and request
+funds from the user. Before executing your first action, get the wallet details to see what network
+you're on. If there is a 5XX (internal) HTTP error code, ask the user to try again later. If someone
+asks you to do something you can't do with your currently available tools, you must say so, and
+encourage them to implement it themselves using the CDP SDK + Agentkit, recommend they go to
+docs.cdp.coinbase.com for more information. Be concise and helpful with your responses. Refrain from
+restating your tools' descriptions unless it is explicitly requested.`;
+
+/**
+ * Initialize the agent with CDP Agentkit and Vercel AI SDK tools
+ *
+ * @returns Object containing initialized tools
+ * @throws Error if initialization fails
+ */
+async function initializeAgent() {
+  try {
+    const networkId = process.env.NETWORK_ID || "base-sepolia";
+    const walletDataFile = `wallet_data_${networkId.replace(/-/g, "_")}.txt`;
+
+    let walletData: WalletData | null = null;
+    let privateKey: Hex | null = null;
+
+    // Read existing wallet data if available
+    if (fs.existsSync(walletDataFile)) {
+      try {
+        walletData = JSON.parse(fs.readFileSync(walletDataFile, "utf8")) as WalletData;
+        privateKey = walletData.privateKey;
+      } catch (error) {
+        console.error(`Error reading wallet data for ${networkId}:`, error);
+        // Continue without wallet data
+      }
+    }
+
+    if (!privateKey) {
+      if (walletData?.smartWalletAddress) {
+        throw new Error(
+          `Smart wallet found but no private key provided. Either provide the private key, or delete ${walletDataFile} and try again.`,
+        );
+      }
+      privateKey = (process.env.PRIVATE_KEY || generatePrivateKey()) as Hex;
+    }
+
+    const signer = privateKeyToAccount(privateKey);
+
+    // Configure Smart Wallet Provider
+    const walletProvider = await SmartWalletProvider.configureWithWallet({
+      networkId,
+      signer,
+      smartWalletAddress: walletData?.smartWalletAddress,
+      paymasterUrl: undefined, // Sponsor transactions: https://docs.cdp.coinbase.com/paymaster/docs/welcome
+    });
+
+    const agentKit = await AgentKit.from({
+      walletProvider,
+      actionProviders: [
+        cdpApiActionProvider({
+          apiKeyName: process.env.CDP_API_KEY_NAME,
+          apiKeyPrivateKey: process.env.CDP_API_KEY_PRIVATE_KEY,
+        }),
+        erc721ActionProvider(),
+        pythActionProvider(),
+        walletActionProvider(),
+      ],
+    });
+
+    // Save wallet data
+    const smartWalletAddress = await walletProvider.getAddress();
+    fs.writeFileSync(
+      walletDataFile,
+      JSON.stringify({
+        privateKey,
+        smartWalletAddress,
+      } as WalletData),
+    );
+
+    const tools = getVercelAITools(agentKit);
+    return { tools };
+  } catch (error) {
+    console.error("Failed to initialize agent:", error);
+    throw error;
+  }
+}
+
+/**
+ * Run the chatbot in interactive mode
+ *
+ * @param tools - Record of Vercel AI SDK tools from AgentKit
+ * @returns Promise that resolves when chat session ends
+ */
+async function runChatMode(tools: ToolSet) {
+  console.log("Starting chat mode... Type 'exit' to end.");
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  const messages: Message[] = [];
+  let running = true;
+
+  try {
+    while (running) {
+      const userInput = await question("\nPrompt: ");
+
+      if (userInput.toLowerCase() === "exit") {
+        running = false;
+        continue;
+      }
+
+      messages.push({ id: generateId(), role: "user", content: userInput });
+
+      const stream = streamText({
+        model: openai("gpt-4o-mini"),
+        messages,
+        tools,
+        system,
+        maxSteps: 10,
+      });
+
+      let assistantMessage = "";
+      for await (const chunk of stream.textStream) {
+        process.stdout.write(chunk);
+        assistantMessage += chunk;
+      }
+      console.log("\n-------------------");
+
+      messages.push({ id: generateId(), role: "assistant", content: assistantMessage });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * Run the agent autonomously with specified intervals
+ *
+ * @param tools - Record of Vercel AI SDK tools from AgentKit
+ * @param interval - Time interval between actions in seconds
+ */
+async function runAutonomousMode(tools: ToolSet, interval = 10) {
+  console.log("Starting autonomous mode...");
+
+  const messages: Message[] = [];
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const thought =
+        "Be creative and do something interesting on the blockchain. " +
+        "Choose an action or set of actions and execute it that highlights your abilities.";
+
+      messages.push({ id: generateId(), role: "user", content: thought });
+
+      const stream = streamText({
+        model: openai("gpt-4o-mini"),
+        messages,
+        tools,
+        system,
+        maxSteps: 10,
+      });
+
+      let assistantMessage = "";
+      for await (const chunk of stream.textStream) {
+        process.stdout.write(chunk);
+        assistantMessage += chunk;
+      }
+      console.log("\n-------------------");
+
+      messages.push({ id: generateId(), role: "assistant", content: assistantMessage });
+
+      await new Promise(resolve => setTimeout(resolve, interval * 1000));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error:", error.message);
+      }
+      process.exit(1);
+    }
+  }
+}
+
+/**
+ * Choose whether to run in autonomous or chat mode based on user input
+ *
+ * @returns Selected mode
+ */
+async function chooseMode(): Promise<"chat" | "auto"> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const question = (prompt: string): Promise<string> =>
+    new Promise(resolve => rl.question(prompt, resolve));
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    console.log("\nAvailable modes:");
+    console.log("1. chat    - Interactive chat mode");
+    console.log("2. auto    - Autonomous action mode");
+
+    const choice = (await question("\nChoose a mode (enter number or name): "))
+      .toLowerCase()
+      .trim();
+
+    if (choice === "1" || choice === "chat") {
+      rl.close();
+      return "chat";
+    } else if (choice === "2" || choice === "auto") {
+      rl.close();
+      return "auto";
+    }
+    console.log("Invalid choice. Please try again.");
+  }
+}
+
+/**
+ * Main entry point for the chatbot application
+ * Initializes the agent and starts chat mode
+ *
+ * @throws Error if initialization or chat mode fails
+ */
+async function main() {
+  try {
+    const { tools } = await initializeAgent();
+    const mode = await chooseMode();
+    if (mode === "chat") {
+      await runChatMode(tools);
+    } else {
+      await runAutonomousMode(tools);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  console.log("Starting Agent...");
+  main().catch(error => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+}

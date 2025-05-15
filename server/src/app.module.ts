@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PropertiesModule } from './properties/properties.module';
 import { BookingsModule } from './bookings/bookings.module';
-import { AiModule } from './ai/ai.module';
+import { AIModule } from './ai/ai.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -20,7 +20,7 @@ import { AppService } from './app.service';
         UsersModule,
         PropertiesModule,
         BookingsModule,
-        AiModule,
+        AIModule,
     ],
     controllers: [AppController],
     providers: [AppService],
