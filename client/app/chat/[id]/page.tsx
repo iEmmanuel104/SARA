@@ -18,36 +18,94 @@ const chatHistory = [
         title: "2BR apartment in NYC",
         preview: "Looking for a 2-bedroom apartment in New York...",
         date: "2 hours ago",
+        messages: [
+            {
+                id: "1",
+                role: "assistant",
+                content: "Hi, I'm SARA, your AI rental assistant! How can I help you find the perfect shortlet today?",
+            },
+            {
+                id: "2",
+                role: "user",
+                content: "I'm looking for a 2-bedroom apartment in New York for a family vacation next month.",
+            },
+            {
+                id: "3",
+                role: "assistant",
+                content:
+                    "Great! I'd be happy to help you find a 2-bedroom apartment in New York. Could you tell me more about your preferences? For example, which area of New York are you interested in, what's your budget, and are there any specific amenities you're looking for?",
+            },
+        ],
     },
     {
         id: "chat2",
         title: "Beach house in Miami",
         preview: "I need a beachfront property in Miami for next weekend...",
         date: "Yesterday",
+        messages: [
+            {
+                id: "1",
+                role: "assistant",
+                content: "Hi, I'm SARA, your AI rental assistant! How can I help you find the perfect shortlet today?",
+            },
+            {
+                id: "2",
+                role: "user",
+                content: "I need a beachfront property in Miami for next weekend.",
+            },
+            {
+                id: "3",
+                role: "assistant",
+                content:
+                    "I'd be happy to help you find a beachfront property in Miami for next weekend! Could you provide some more details about your stay? How many people will be staying, what's your budget, and are there any specific amenities you're looking for?",
+            },
+        ],
     },
     {
         id: "chat3",
         title: "Downtown loft",
         preview: "Searching for a modern loft in downtown area...",
         date: "3 days ago",
-    },
-]
-
-export default function Chat() {
-    const messagesEndRef = useRef<HTMLDivElement>(null)
-    const [showSidebar, setShowSidebar] = useState(true)
-
-    // Use the useChat hook from Vercel AI SDK [^2]
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-        api: "/api/chat",
-        initialMessages: [
+        messages: [
             {
                 id: "1",
                 role: "assistant",
                 content: "Hi, I'm SARA, your AI rental assistant! How can I help you find the perfect shortlet today?",
             },
+            {
+                id: "2",
+                role: "user",
+                content: "Searching for a modern loft in downtown area.",
+            },
+            {
+                id: "3",
+                role: "assistant",
+                content:
+                    "I'd be happy to help you find a modern loft in a downtown area! To better assist you, could you specify which city you're interested in? Also, it would be helpful to know your budget, the dates of your stay, and how many people will be staying.",
+            },
         ],
+    },
+]
+
+export default function ChatDetail({ params }: { params: { id: string } }) {
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+    const [showSidebar, setShowSidebar] = useState(true)
+
+    // Find the chat by ID
+    const currentChat = chatHistory.find((chat) => chat.id === params.id) || chatHistory[0]
+
+    // Use the useChat hook from Vercel AI SDK [^2]
+    const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
+        api: "/api/chat",
+        id: params.id,
     })
+
+    // Set initial messages from chat history
+    useEffect(() => {
+        if (currentChat && currentChat.messages) {
+            setMessages(currentChat.messages)
+        }
+    }, [currentChat, setMessages])
 
     // Auto-scroll to the bottom when new messages arrive
     useEffect(() => {
@@ -58,12 +116,15 @@ export default function Chat() {
         <div className="flex min-h-screen flex-col bg-gray-50">
             <header className="border-b bg-white">
                 <div className="container flex h-16 items-center px-4">
-                    <Link href="/dashboard" className="mr-6">
+                    <Link href="/chat" className="mr-6">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
                     <Logo size="small" />
+                    <div className="ml-4 flex-1">
+                        <h1 className="text-lg font-medium">{currentChat.title}</h1>
+                    </div>
                     <div className="ml-auto flex items-center space-x-2">
                         <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => setShowSidebar(!showSidebar)}>
                             {showSidebar ? "Hide History" : "Show History"}
@@ -105,16 +166,15 @@ export default function Chat() {
                                 </div>
                                 <div className="flex-1 overflow-auto">
                                     <div className="space-y-1 p-2">
-                                        <Button
-                                            variant="ghost"
-                                            className="w-full justify-start font-normal bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
-                                        >
-                                            <Clock className="mr-2 h-4 w-4" />
-                                            Current Chat
-                                        </Button>
                                         {chatHistory.map((chat) => (
                                             <Link key={chat.id} href={`/chat/${chat.id}`} className="block">
-                                                <Button variant="ghost" className="w-full justify-start font-normal">
+                                                <Button
+                                                    variant="ghost"
+                                                    className={`w-full justify-start font-normal ${chat.id === params.id
+                                                        ? "bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
+                                                        : ""
+                                                        }`}
+                                                >
                                                     <Clock className="mr-2 h-4 w-4" />
                                                     {chat.title}
                                                 </Button>

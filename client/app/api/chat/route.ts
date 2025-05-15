@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { auth } from '@/lib/auth';
 import { StreamingTextResponse } from 'ai';
 
 // This is the API route that the client will call using Vercel AI SDK
