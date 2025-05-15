@@ -1,4 +1,4 @@
-// src/auth/auth.service.ts (enhanced version)
+// server/src/auth/auth.service.ts
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -16,7 +16,7 @@ export class AuthService {
 
     async validateUser(email: string, password: string): Promise<any> {
         const user = await this.usersService.findByEmail(email);
-        if (user && await bcrypt.compare(password, user.passwordHash)) {
+        if (user && user.passwordHash && await bcrypt.compare(password, user.passwordHash)) {
             const { passwordHash, ...result } = user;
             return result;
         }
@@ -136,5 +136,14 @@ export class AuthService {
         });
 
         return { success: true };
+    }
+
+    /**
+     * Login or register a user with Privy authentication
+     */
+    async privyLogin(user: any) {
+        // The Privy strategy already created or updated the user
+        // We just need to generate tokens
+        return this.login(user);
     }
 }

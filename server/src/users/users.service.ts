@@ -1,3 +1,4 @@
+// src/users/users.service.ts
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -51,6 +52,24 @@ export class UsersService {
     async findByEmail(email: string) {
         return this.prisma.user.findUnique({
             where: { email },
+        });
+    }
+
+    /**
+     * Find a user by their Privy user ID
+     */
+    async findByPrivyUserId(privyUserId: string) {
+        return this.prisma.user.findFirst({
+            where: { privyUserId },
+        });
+    }
+
+    /**
+     * Find a user by their wallet address
+     */
+    async findByWalletAddress(walletAddress: string) {
+        return this.prisma.user.findFirst({
+            where: { walletAddress },
         });
     }
 
@@ -115,4 +134,4 @@ export class UsersService {
             },
         });
     }
-} 
+}

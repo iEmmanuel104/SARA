@@ -1,7 +1,8 @@
+// server/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import * as helmet from 'helmet';
+import helmet from 'helmet';
 import * as compression from 'compression';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -33,14 +34,14 @@ async function bootstrap() {
 
     // Swagger documentation
     const config = new DocumentBuilder()
-        .setTitle('DWELLR API')
-        .setDescription('The DWELLR API documentation')
+        .setTitle('SARA API')
+        .setDescription('The SARA API documentation')
         .setVersion('1.0')
         .addBearerAuth()
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('docs', app, document);
 
-    await app.listen(process.env.PORT || 3000);
+    await app.listen(process.env.PORT || 3001);
 }
 bootstrap();

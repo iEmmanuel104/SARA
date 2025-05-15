@@ -1,3 +1,4 @@
+// src/users/dto/update-user.dto.ts
 import { IsEmail, IsString, IsOptional, IsBoolean, IsDate, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -63,4 +64,14 @@ export class UpdateUserDto {
     @IsObject()
     @IsOptional()
     notificationPreferences?: Record<string, boolean>;
-} 
+
+    @ApiProperty({ example: '0x1234...', required: false })
+    @IsString()
+    @IsOptional()
+    walletAddress?: string;
+
+    @ApiProperty({ example: 'privy:123abc', required: false })
+    @IsString()
+    @IsOptional()
+    privyUserId?: string;
+}

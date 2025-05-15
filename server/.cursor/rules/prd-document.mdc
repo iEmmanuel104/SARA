@@ -1,0 +1,319 @@
+---
+description: 
+globs: server/
+alwaysApply: false
+---
+web search https://docs.cdp.coinbase.com/agentkit/docs/ to understand the coinbase agentkit sdk and https://ai-sdk.dev/docs for vercal ai sdk 
+
+SARA Project Architecture: Enhanced AI Implementation
+Architectural Flow Overview
+Based on your requirements and the provided files, let's redesign the architectural flow for SARA to effectively integrate Vercel AI SDK, Coinbase Agent Kit, and Privy for authentication, while leveraging your existing Prisma schema.
+1. Core AI Flow
+User Request → Client → Vercel AI SDK → API Gateway → 
+SARA Agent (Coinbase Agent Kit) → Tools Execution → 
+Database Operations → Streaming Response → Client
+2. Authentication Flow with Privy
+User → Privy Authentication Widget → Authentication Token → 
+Server Verification → JWT Generation → Client Storage → 
+Protected Routes & API Calls
+3. Property Search & Recommendation Flow
+User Query → NLP Processing → Intent Recognition → 
+Search Parameters Extraction → Database Query → 
+Personalization Layer → Response Formatting → 
+Streaming Back to User
+4. Booking Flow
+Property Selection → Availability Check → User Preferences Application → 
+Booking Request → Payment Processing → Confirmation → 
+Notification → Conversation Memory Update
+Server Implementation Structure
+Let's organize the server implementation for the MVP with a focus on essential features:
+server/
+├── src/
+│   ├── main.ts                       # Application entry point
+│   ├── app.module.ts                 # Root module
+│   ├── app.controller.ts             # Root controller
+│   ├── app.service.ts                # Root service
+│   ├── prisma/                       # Prisma integration
+│   │   ├── prisma.module.ts          # Prisma module
+│   │   ├── prisma.service.ts         # Prisma service
+│   │   └── schema.prisma             # Your existing schema
+│   ├── auth/                         # Authentication module
+│   │   ├── auth.module.ts            # Auth module configuration
+│   │   ├── auth.controller.ts        # Auth endpoints
+│   │   ├── auth.service.ts           # Authentication logic
+│   │   ├── strategies/               # Auth strategies
+│   │   │   ├── jwt.strategy.ts       # JWT strategy
+│   │   │   ├── privy.strategy.ts     # Privy strategy
+│   │   │   └── local.strategy.ts     # Email/password strategy
+│   │   └── guards/                   # Auth guards
+│   │       ├── jwt-auth.guard.ts     # JWT guard
+│   │       └── roles.guard.ts        # Role-based guard
+│   ├── users/                        # User management
+│   │   ├── users.module.ts           # Users module
+│   │   ├── users.controller.ts       # User endpoints
+│   │   ├── users.service.ts          # User service
+│   │   ├── dto/                      # Data Transfer Objects
+│   │   │   ├── create-user.dto.ts    # Create user DTO
+│   │   │   └── update-user.dto.ts    # Update user DTO
+│   │   └── entities/                 # Entity definitions
+│   │       └── user.entity.ts        # User entity
+│   ├── properties/                   # Property management
+│   │   ├── properties.module.ts      # Properties module
+│   │   ├── properties.controller.ts  # Property endpoints
+│   │   ├── properties.service.ts     # Property service
+│   │   ├── dto/                      # Property DTOs
+│   │   └── entities/                 # Property entities
+│   ├── bookings/                     # Booking management
+│   │   ├── bookings.module.ts        # Bookings module
+│   │   ├── bookings.controller.ts    # Booking endpoints
+│   │   ├── bookings.service.ts       # Booking service
+│   │   └── dto/                      # Booking DTOs
+│   ├── ai/                           # AI functionality
+│   │   ├── ai.module.ts              # AI module configuration
+│   │   ├── ai.controller.ts          # AI endpoints (chat, recommendations)
+│   │   ├── ai.service.ts             # Core AI service
+│   │   ├── agent/                    # Agent implementation
+│   │   │   ├── sara-agent.ts         # SARA agent with Coinbase Agent Kit
+│   │   │   ├── prompt-templates.ts   # Agent prompt templates
+│   │   │   └── agent-factory.ts      # Agent creation factory
+│   │   ├── tools/                    # Agent tools
+│   │   │   ├── property-search.tool.ts   # Property search tool
+│   │   │   ├── booking-check.tool.ts     # Booking availability tool
+│   │   │   └── user-preferences.tool.ts  # User preferences tool
+│   │   ├── memory/                   # Memory management
+│   │   │   ├── memory-manager.ts     # Memory manager
+│   │   │   └── conversation-store.ts # Conversation storage
+│   │   └── streaming/                # Streaming implementation
+│   │       └── streaming-service.ts  # SSE implementation
+│   └── common/                       # Shared functionality
+│       ├── interceptors/             # HTTP interceptors
+│       ├── filters/                  # Exception filters
+│       ├── decorators/               # Custom decorators
+│       ├── guards/                   # Custom guards
+│       ├── pipes/                    # Validation pipes
+│       └── utils/                    # Utilities
+└── test/                             # Test files
+
+
+
+SARA Project Implementation Plan
+I'll help you convert the project to use Vercel AI SDK and Coinbase Agent Kit for AI features and Privy for on-chain authentication. Based on the repository structure and documentation provided, I'll outline a phased implementation approach.
+MVP Implementation Tasks Breakdown
+Phase 1: Foundation & Core Infrastructure
+
+Project Setup
+
+Configure server with NestJS and required dependencies
+Set up client with Next.js and required packages
+Establish database connection with Prisma
+Configure environment variables
+
+
+Authentication System
+
+Implement Privy integration for Web3/on-chain login
+Set up JWT authentication with refresh tokens
+Create user registration and login flows
+Develop authentication guards and middleware
+
+
+Basic UI Components
+
+Set up Shadcn UI component library
+Create layout components and responsive design
+Implement navigation and common UI elements
+Build authentication pages (login, signup)
+
+
+API Gateway & Core Services
+
+Create API gateway for routing requests
+Implement user service and endpoints
+Set up property service scaffolding
+Create health checks and basic error handling
+
+
+
+Phase 2: AI Integration & Conversation
+
+Vercel AI SDK Setup
+
+Integrate Vercel AI SDK on the client side
+Set up streaming response handling
+Create chat interface components
+Implement chat state management
+
+
+Coinbase Agent Kit Integration
+
+Set up Coinbase Agent Kit on the server
+Create SARA agent implementation
+Develop basic conversation flows
+Implement memory management for context
+
+
+Basic Property Search
+
+Create property search tool for the agent
+Implement basic property listing and filtering
+Set up property detail pages
+Develop property recommendations in chat
+
+
+Conversation Experience
+
+Implement multi-turn conversations
+Create conversational property search
+Set up preference tracking in conversations
+Develop helpful responses and suggestions
+
+
+
+Phase 3: Booking System & User Dashboard
+
+Booking Flow
+
+Create booking service and endpoints
+Implement availability checking
+Develop booking creation and management
+Set up payment flow integration
+
+
+User Dashboard
+
+Build user profile management
+Create saved properties functionality
+Implement booking history and management
+Develop user preference settings
+
+
+Advanced AI Tools
+
+Implement booking availability tool
+Create user preferences tool
+Develop location information tool
+Add specialized conversation flows for booking
+
+
+Enhanced Property Management
+
+Create property management for hosts
+Implement property analytics
+Develop review and rating system
+Set up property image management
+
+
+
+Phase 4: Experience Optimization & Deployment
+
+Personalization Engine
+
+Implement user preference learning
+Create personalized recommendations
+Develop adaptive conversation styles
+Set up preference-based search
+
+
+Performance Optimization
+
+Implement caching strategies
+Optimize database queries
+Add pagination and lazy loading
+Improve frontend performance
+
+
+Testing & Quality Assurance
+
+Write unit and integration tests
+Perform end-to-end testing
+Conduct security testing
+Address bugs and issues
+
+
+Deployment & Monitoring
+
+Set up CI/CD pipeline
+Deploy to production environment
+Implement logging and monitoring
+Create documentation and user guides
+
+
+
+Phase 1 Implementation: Foundation & Core Infrastructure
+Let's begin implementing Phase 1 in detail.
+1. Project Setup
+Server Setup (NestJS)
+First, make sure your NestJS server is properly configured:
+
+Update the server/package.json with the necessary dependencies
+Configure the Prisma service for database connection
+Set up environment variables
+
+Client Setup (Next.js)
+For the client side:
+
+Ensure Next.js is properly configured
+Set up Tailwind CSS and Shadcn UI
+Configure environment variables
+Create the basic application structure
+
+2. Authentication System
+Privy Integration for Web3 Login
+
+Install Privy SDK in the client
+Set up Privy provider in Next.js
+Create authentication hooks for Privy
+Configure backend to verify Privy tokens
+
+JWT Authentication
+
+Configure JWT strategy in NestJS
+Implement token generation and validation
+Create refresh token functionality
+Set up authentication guards
+
+3. Basic UI Components
+
+Set up the Shadcn UI component library
+Create main layout components
+Implement responsive design
+Build authentication pages
+
+4. API Gateway & Core Services
+
+Set up the API gateway in NestJS
+Implement user service and endpoints
+Create property service scaffolding
+Set up error handling and logging
+
+Required Packages
+Server Packages (pnpm)
+bashpnpm add @nestjs/common @nestjs/core @nestjs/config @nestjs/platform-express @nestjs/jwt @nestjs/passport
+pnpm add passport passport-jwt passport-local
+pnpm add @prisma/client bcrypt class-validator class-transformer
+pnpm add coinbase-agent-kit @langchain/openai @langchain/core
+pnpm add rxjs compression helmet
+pnpm add uuid jsonwebtoken
+pnpm add -D prisma @nestjs/cli @nestjs/schematics @nestjs/testing
+pnpm add -D typescript ts-loader ts-node @types/node @types/express
+pnpm add -D @types/passport-jwt @types/passport-local @types/bcrypt
+pnpm add -D jest ts-jest @types/jest supertest @types/supertest
+Client Packages (npm)
+bashnpm install next react react-dom typescript
+npm install ai openai @vercel/ai
+npm install coinbase-agent-kit
+npm install @privy-io/react-auth
+npm install @radix-ui/react-icons @radix-ui/react-slot
+npm install tailwindcss postcss autoprefixer
+npm install class-variance-authority clsx tailwind-merge
+npm install lucide-react
+npm install next-themes
+npm install react-hook-form @hookform/resolvers zod
+npm install embla-carousel-react
+npm install axios jwt-decode
+npm install zustand react-query
+npm install framer-motion
+npm install sonner
+npm install -D typescript @types/react @types/node
+
+
