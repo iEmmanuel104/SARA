@@ -54,7 +54,7 @@ export function MainNav() {
                         </Button>
                     </Link>
                     <Link href="/signup">
-                        <Button size="sm">Sign up</Button>
+                        <Button size="sm" className="text-white">Sign up</Button>
                     </Link>
                 </div>
             </div>

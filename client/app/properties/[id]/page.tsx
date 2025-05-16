@@ -55,6 +55,7 @@ export default function PropertyDetail({ params }: { params: { id: string } }) {
         address: "123 Main Street, Downtown, New York, NY 10001",
         price: "$250",
         rating: 4.9,
+        reviews: 128,
         guests: 4,
         bedrooms: 2,
         beds: 2,

@@ -1,8 +1,8 @@
 // client/app/providers.tsx
 "use client";
 
-import { AuthProvider } from "@/components/providers/AuthProvider";
 import React from "react";
+import { AuthProvider } from "./AuthProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (

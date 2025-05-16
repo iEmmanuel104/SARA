@@ -103,7 +103,12 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
     // Set initial messages from chat history
     useEffect(() => {
         if (currentChat && currentChat.messages) {
-            setMessages(currentChat.messages)
+            setMessages(
+                currentChat.messages.map((m) => ({
+                    ...m,
+                    role: m.role as "user" | "assistant" | "system" | "data",
+                }))
+            )
         }
     }, [currentChat, setMessages])
 
@@ -171,8 +176,8 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
                                                 <Button
                                                     variant="ghost"
                                                     className={`w-full justify-start font-normal ${chat.id === params.id
-                                                        ? "bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
-                                                        : ""
+                                                            ? "bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
+                                                            : ""
                                                         }`}
                                                 >
                                                     <Clock className="mr-2 h-4 w-4" />
@@ -193,9 +198,11 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
                         <div className="flex-1 overflow-auto rounded-lg border bg-white p-4 shadow-sm">
                             <div className="space-y-4">
                                 <AnimatePresence>
-                                    {messages.map((message) => (
-                                        <ChatMessage key={message.id} message={message} />
-                                    ))}
+                                    {messages
+                                        .filter((message) => message.role === "user" || message.role === "assistant")
+                                        .map((message) => (
+                                            <ChatMessage key={message.id} message={message} />
+                                        ))}
                                 </AnimatePresence>
 
                                 {isLoading && (

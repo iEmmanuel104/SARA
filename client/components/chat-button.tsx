@@ -18,7 +18,7 @@ export function ChatButton() {
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
-                    <MessageSquare className="h-6 w-6" />
+                    <MessageSquare className="h-6 w-6 text-white" />
                     <AnimatePresence>
                         {isHovered && (
                             <motion.div

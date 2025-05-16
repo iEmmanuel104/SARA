@@ -1,8 +1,8 @@
 import { PrivyProvider, usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { privyConfig } from '@/lib/auth/privy-config';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuthStore } from '@/src/store/auth-store';
+import { privyConfig } from '@/src/lib/auth/privy-config';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
