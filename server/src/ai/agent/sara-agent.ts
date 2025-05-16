@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { AgentKit } from '@coinbase/agentkit';
-import { getLangChainTools } from '@coinbase/agentkit-langchain';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
 import { Tool } from '@langchain/core/tools';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage, SystemMessage, AIMessage, BaseMessage } from '@langchain/core/messages';
 import { PropertySearchTool } from '../tools/property-search.tool';
 import { BookingCheckTool } from '../tools/booking-check.tool';
 import { UserPreferencesTool } from '../tools/user-preferences.tool';
@@ -58,23 +57,23 @@ export class SaraAgent {
                 actionProviders: [
                     {
                         name: 'property_search',
-                        action: this.propertySearchTool,
+                        provider: this.propertySearchTool,
                     },
                     {
                         name: 'booking_check',
-                        action: this.bookingCheckTool,
+                        provider: this.bookingCheckTool,
                     },
                     {
                         name: 'user_preferences',
-                        action: this.userPreferencesTool,
+                        provider: this.userPreferencesTool,
                     },
                     {
                         name: 'nlp_search',
-                        action: this.nlpSearchTool,
+                        provider: this.nlpSearchTool,
                     },
                     {
                         name: 'property_recommendations',
-                        action: this.propertyRecommendationsTool,
+                        provider: this.propertyRecommendationsTool,
                     },
                 ],
             });
@@ -173,7 +172,7 @@ export class SaraAgent {
      * Analyzes an image and provides insights
      */
     async analyzeImage(imageUrl: string) {
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'You are an expert in property analysis. Analyze the property image and provide insights about the space, design, and potential improvements.'
@@ -193,7 +192,7 @@ export class SaraAgent {
                     }
                 ]
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         return {
@@ -214,10 +213,7 @@ export class SaraAgent {
             // First, find or create the conversation
             const conversation = await this.prisma.aiConversation.upsert({
                 where: {
-                    userId_sessionId: {
-                        userId,
-                        sessionId,
-                    },
+                    id: `${userId}_${sessionId}`,
                 },
                 update: {
                     lastUserMessage: userMessage,
@@ -225,6 +221,7 @@ export class SaraAgent {
                     updatedAt: new Date(),
                 },
                 create: {
+                    id: `${userId}_${sessionId}`,
                     userId,
                     sessionId,
                     lastUserMessage: userMessage,
@@ -272,7 +269,7 @@ export class SaraAgent {
      * Analyzes sentiment of text
      */
     async analyzeSentiment(text: string): Promise<'positive' | 'neutral' | 'negative'> {
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'Analyze the sentiment of the following text and respond with only one word: positive, neutral, or negative.'
@@ -281,7 +278,7 @@ export class SaraAgent {
                 role: 'user',
                 content: text
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         const content = this.extractContentString(response.content);
@@ -297,17 +294,16 @@ export class SaraAgent {
         bookings: any[];
         amenities: any[];
     }) {
-        const prompt = this.buildPropertyInsightsPrompt(data);
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'You are an expert property analyst. Provide detailed insights about the property based on the data provided.'
             },
             {
                 role: 'user',
-                content: prompt
+                content: this.buildPropertyInsightsPrompt(data)
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         const content = this.extractContentString(response.content);
@@ -323,17 +319,16 @@ export class SaraAgent {
         bookings: any[];
         reviews: any[];
     }) {
-        const prompt = this.buildPricingRecommendationPrompt(data);
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'You are an expert in property pricing and market analysis. Provide detailed pricing recommendations based on the data provided.'
             },
             {
                 role: 'user',
-                content: prompt
+                content: this.buildPricingRecommendationPrompt(data)
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         const content = this.extractContentString(response.content);
@@ -347,17 +342,16 @@ export class SaraAgent {
         host: any;
         properties: any[];
     }) {
-        const prompt = this.buildHostingTipsPrompt(data);
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'You are an expert property host advisor. Provide personalized hosting tips based on the host profile and property data.'
             },
             {
                 role: 'user',
-                content: prompt
+                content: this.buildHostingTipsPrompt(data)
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         const content = this.extractContentString(response.content);
@@ -373,17 +367,16 @@ export class SaraAgent {
         bookings: any[];
         amenities: any[];
     }) {
-        const prompt = this.buildPropertyImprovementPrompt(data);
-        const messages: ChatCompletionMessageParam[] = [
+        const messages = this.convertToBaseMessages([
             {
                 role: 'system',
                 content: 'You are an expert in property improvement and guest experience optimization. Provide detailed suggestions for improving the property based on the data provided.'
             },
             {
                 role: 'user',
-                content: prompt
+                content: this.buildPropertyImprovementPrompt(data)
             }
-        ];
+        ]);
 
         const response = await this.model.invoke(messages);
         return this.parseAIResponse(this.extractContentString(response.content));
@@ -593,5 +586,17 @@ export class SaraAgent {
             
             Be concise yet helpful, and proactively offer useful information.
         `;
+    }
+
+    private convertToBaseMessages(messages: any[]): BaseMessage[] {
+        return messages.map(msg => {
+            if (msg.role === 'system') {
+                return new SystemMessage(msg.content);
+            } else if (msg.role === 'assistant') {
+                return new AIMessage(msg.content);
+            } else {
+                return new HumanMessage(msg.content);
+            }
+        });
     }
 }
