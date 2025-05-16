@@ -1,7 +1,7 @@
 import type React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { MainNav } from "@/components/main-nav"
+import { DynamicIsland } from "@/components/dynamic-island"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
 export default function DashboardLayout({
     children,
@@ -10,14 +10,11 @@ export default function DashboardLayout({
 }) {
     return (
         <SidebarProvider>
-            <div className="flex min-h-screen">
+            <div className="min-h-screen flex flex-row bg-gray-50">
                 <AppSidebar />
-                <SidebarInset className="flex flex-col">
-                    <div className="flex h-16 items-center border-b px-4">
-                        <SidebarTrigger />
-                        <MainNav />
-                    </div>
-                    <main className="flex-1 overflow-auto">{children}</main>
+                <SidebarInset className="flex-1 flex flex-col relative">
+                    {/* <DynamicIsland isLoggedIn={true} /> */}
+                    <main className="flex-1">{children}</main>
                 </SidebarInset>
             </div>
         </SidebarProvider>
