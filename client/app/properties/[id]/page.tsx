@@ -174,7 +174,7 @@ export default function PropertyDetail({ params }: { params: { id: string } }) {
                                 <Share2 className="h-5 w-5" />
                             </Button>
                             <Link href="/chat">
-                                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
                                     <MessageSquare className="mr-2 h-4 w-4" />
                                     Ask SARA
                                 </Button>
@@ -403,7 +403,7 @@ export default function PropertyDetail({ params }: { params: { id: string } }) {
                                         </select>
                                     </div>
 
-                                    <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600">Book Now</Button>
+                                    <Button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white">Book Now</Button>
 
                                     <div className="border-t pt-4">
                                         <div className="flex items-center justify-between">

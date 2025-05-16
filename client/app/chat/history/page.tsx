@@ -76,14 +76,14 @@ export default function ChatHistory() {
             </header>
 
             <main className="flex-1">
-                <div className="container max-w-4xl px-4 py-8">
+                <div className="container max-w-4xl px-4 pt-24 pb-40 md:py-8">
                     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Chat History</h1>
+                            <h1 className="text-3xl font-bold tracking-tight mt-4">Chat History</h1>
                             <p className="text-gray-500">Your conversations with SARA</p>
                         </div>
                         <Link href="/chat">
-                            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700">
                                 <Plus className="mr-2 h-4 w-4" />
                                 New Chat
                             </Button>
@@ -107,7 +107,7 @@ export default function ChatHistory() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5 }}
-                        className="mt-6 space-y-4"
+                        className="mt-6 space-y-4 pb-8"
                     >
                         {filteredChats.map((chat) => (
                             <motion.div
@@ -154,7 +154,7 @@ export default function ChatHistory() {
                                         : "You haven't had any conversations with SARA yet"}
                                 </p>
                                 <Link href="/chat">
-                                    <Button className="mt-6">Start a New Chat</Button>
+                                    <Button className="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700">Start a New Chat</Button>
                                 </Link>
                             </div>
                         )}

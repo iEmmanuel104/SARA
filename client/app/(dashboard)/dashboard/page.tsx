@@ -92,9 +92,6 @@ const chatHistory = [
 export default function Dashboard() {
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-indigo-100 to-purple-100 text-gray-900">
-            {/* Pass isLoggedIn=true for the dashboard */}
-            <DynamicIsland isLoggedIn={true} />
-
             <div className="container px-4 py-8 md:px-6 md:py-12 pt-24">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -123,62 +120,62 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                    className="mt-8 grid gap-6 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 >
-                    <Link href="/explore">
-                        <Card className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6 flex items-center">
+                    <Link href="/explore" className="w-full">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                            <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-purple-100 p-3 mr-4">
                                     <Search className="h-6 w-6 text-purple-600" />
                                 </div>
-                                <div>
-                                    <h3 className="font-medium">Explore Properties</h3>
-                                    <p className="text-sm text-gray-500">Browse all listings</p>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold">Explore Properties</h3>
+                                    <p className="text-sm text-gray-500 truncate">Browse all listings</p>
                                 </div>
                                 <ArrowRight className="ml-auto h-5 w-5 text-gray-400" />
                             </CardContent>
                         </Card>
                     </Link>
 
-                    <Link href="/saved">
-                        <Card className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6 flex items-center">
+                    <Link href="/saved" className="w-full">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                            <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-red-100 p-3 mr-4">
                                     <Heart className="h-6 w-6 text-red-500" />
                                 </div>
-                                <div>
-                                    <h3 className="font-medium">Saved Properties</h3>
-                                    <p className="text-sm text-gray-500">View your favorites</p>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold">Saved Properties</h3>
+                                    <p className="text-sm text-gray-500 truncate">View your favorites</p>
                                 </div>
                                 <ArrowRight className="ml-auto h-5 w-5 text-gray-400" />
                             </CardContent>
                         </Card>
                     </Link>
 
-                    <Link href="/bookings">
-                        <Card className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6 flex items-center">
+                    <Link href="/bookings" className="w-full">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                            <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-blue-100 p-3 mr-4">
                                     <CalendarDays className="h-6 w-6 text-blue-600" />
                                 </div>
-                                <div>
-                                    <h3 className="font-medium">Your Bookings</h3>
-                                    <p className="text-sm text-gray-500">Manage reservations</p>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold">Your Bookings</h3>
+                                    <p className="text-sm text-gray-500 truncate">Manage reservations</p>
                                 </div>
                                 <ArrowRight className="ml-auto h-5 w-5 text-gray-400" />
                             </CardContent>
                         </Card>
                     </Link>
 
-                    <Link href="/chat">
-                        <Card className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6 flex items-center">
+                    <Link href="/chat" className="w-full">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                            <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-indigo-100 p-3 mr-4">
                                     <MessageSquare className="h-6 w-6 text-indigo-600" />
                                 </div>
-                                <div>
-                                    <h3 className="font-medium">Chat History</h3>
-                                    <p className="text-sm text-gray-500">View past conversations</p>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold">Chat History</h3>
+                                    <p className="text-sm text-gray-500 truncate">View past conversations</p>
                                 </div>
                                 <ArrowRight className="ml-auto h-5 w-5 text-gray-400" />
                             </CardContent>
@@ -215,10 +212,10 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.5 }}
-                    className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                    className="mt-8 grid gap-6 w-full md:grid-cols-2 lg:grid-cols-3"
                 >
                     {/* Upcoming Bookings */}
-                    <Card>
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-medium">Upcoming Bookings</CardTitle>
                             <CardDescription>Your scheduled stays</CardDescription>
@@ -265,7 +262,7 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Saved Properties */}
-                    <Card>
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-medium">Saved Properties</CardTitle>
                             <CardDescription>Properties you've saved</CardDescription>
@@ -309,17 +306,17 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Recent Chat Activity */}
-                    <Card>
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-medium">Recent Chat Activity</CardTitle>
                             <CardDescription>Your conversations with SARA</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
+                            <div className="space-y-4 w-full max-w-full overflow-hidden">
                                 {chatHistory.length > 0 ? (
                                     chatHistory.map((chat) => (
                                         <Link href={`/chat/${chat.id}`} key={chat.id}>
-                                            <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                            <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors w-full max-w-full overflow-hidden">
                                                 <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                                     <MessageSquare className="h-4 w-4 text-purple-600" />
                                                 </div>
@@ -328,7 +325,7 @@ export default function Dashboard() {
                                                         <p className="font-medium">{chat.title}</p>
                                                         <p className="text-xs text-gray-500">{chat.date}</p>
                                                     </div>
-                                                    <p className="text-sm text-gray-600 truncate">{chat.preview}</p>
+                                                    <p className="text-sm text-gray-600 truncate w-full max-w-full">{chat.preview}</p>
                                                 </div>
                                             </div>
                                         </Link>
@@ -341,7 +338,7 @@ export default function Dashboard() {
                                             Start a conversation with SARA to get help finding your perfect stay
                                         </p>
                                         <Link href="/chat">
-                                            <Button className="mt-4" size="sm">
+                                            <Button className="mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700" size="sm">
                                                 Chat with SARA
                                             </Button>
                                         </Link>

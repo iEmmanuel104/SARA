@@ -86,12 +86,12 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                 initial={{ width: 480, height: 60, borderRadius: 30 }}
                 animate={{
                     width: expanded ? "95%" : notification && showNotification ? 500 : 480,
-                    height: expanded ? 350 : notification && showNotification ? 100 : 60,
+                    height: expanded ? "auto" : notification && showNotification ? 100 : 60,
+                    maxHeight: expanded ? "80vh" : "auto",
                     borderRadius: expanded ? 24 : notification && showNotification ? 20 : 30,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className="relative shadow-lg flex flex-col overflow-hidden"
-                onClick={() => setExpanded(!expanded)}
             >
                 {/* Animated background with gradient and moving beams */}
                 <motion.div
@@ -266,6 +266,7 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             whileHover={{ scale: 1.1, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                             className="flex flex-col items-center justify-center group relative"
+                                            onClick={() => setExpanded(true)}
                                         >
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                 <Menu className="h-4 w-4 text-white" />
@@ -331,6 +332,7 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             whileHover={{ scale: 1.1, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                             className="flex flex-col items-center justify-center group relative"
+                                            onClick={() => setExpanded(true)}
                                         >
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                 <Menu className="h-4 w-4 text-white" />
@@ -357,10 +359,10 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                         >
                             <div
                                 className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm ${notification.type === "message"
-                                        ? "bg-purple-600/80"
-                                        : notification.type === "alert"
-                                            ? "bg-red-500/80"
-                                            : "bg-blue-500/80"
+                                    ? "bg-purple-600/80"
+                                    : notification.type === "alert"
+                                        ? "bg-red-500/80"
+                                        : "bg-blue-500/80"
                                     }`}
                             >
                                 {notification.type === "message" ? (
@@ -404,7 +406,7 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="flex flex-col h-full p-6 relative z-20"
+                            className="flex flex-col h-full p-6 relative z-20 overflow-y-auto"
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <Logo size="default" />
@@ -421,7 +423,7 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                 </motion.div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4 mt-2">
+                            <div className="grid grid-cols-3 gap-4 mt-2 pb-6">
                                 <Link href="/chat" onClick={(e) => e.stopPropagation()}>
                                     <motion.div
                                         whileHover={{ scale: 1.05, y: -3 }}
@@ -546,7 +548,7 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                             {/* AI Assistant quick access */}
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
-                                className="mt-6 bg-gradient-to-r from-purple-500/30 to-indigo-500/30 rounded-xl p-4 backdrop-blur-sm border border-white/10"
+                                className="mt-6 mb-4 bg-gradient-to-r from-purple-500/30 to-indigo-500/30 rounded-xl p-4 backdrop-blur-sm border border-white/10"
                             >
                                 <div className="flex items-center">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mr-3">
@@ -556,12 +558,14 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                         <h3 className="text-white font-medium">Ask SARA</h3>
                                         <p className="text-white/70 text-sm">Your AI rental assistant is ready to help</p>
                                     </div>
-                                    <motion.div
-                                        className="ml-auto bg-white/20 rounded-full px-3 py-1 text-white text-sm backdrop-blur-sm"
-                                        whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.3)" }}
-                                    >
-                                        Chat Now
-                                    </motion.div>
+                                    <Link href="/chat" onClick={(e) => e.stopPropagation()}>
+                                        <motion.div
+                                            className="ml-auto bg-white/20 rounded-full px-3 py-1 text-white text-sm backdrop-blur-sm"
+                                            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.3)" }}
+                                        >
+                                            Chat Now
+                                        </motion.div>
+                                    </Link>
                                 </div>
                             </motion.div>
                         </motion.div>

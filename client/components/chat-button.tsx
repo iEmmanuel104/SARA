@@ -5,16 +5,22 @@ import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function ChatButton() {
     const [isHovered, setIsHovered] = useState(false)
+    const pathname = usePathname()
+
+    if (pathname.startsWith("/chat")) {
+        return null
+    }
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
             <Link href="/chat">
                 <Button
                     size="lg"
-                    className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 p-0 shadow-lg"
+                    className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-0 shadow-lg"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >

@@ -123,7 +123,15 @@ export function PropertyCard({ property, variant = "default", className }: Prope
                             <span className="text-sm font-normal">/night</span>
                         </div>
                         <Link href={`/properties/${property.id}`}>
-                            <Button size="sm" variant={variant === "featured" ? "default" : "outline"}>
+                            <Button
+                                size="sm"
+                                className={
+                                    variant === "featured"
+                                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 border-0"
+                                        : "bg-purple-600 text-white border-0 hover:bg-purple-700"
+                                }
+                                variant={variant === "featured" ? "default" : "outline"}
+                            >
                                 View
                             </Button>
                         </Link>

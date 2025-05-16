@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Logo } from "@/components/ui/logo"
-import { Send, ArrowLeft, ImageIcon, Paperclip, Mic, Clock, Plus, Search } from "lucide-react"
+import { Send, ArrowLeft, ImageIcon, Paperclip, Mic, Clock, Plus, Search, History, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChatMessage } from "@/components/chat/chat-message"
@@ -131,7 +131,17 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
                         <h1 className="text-lg font-medium">{currentChat.title}</h1>
                     </div>
                     <div className="ml-auto flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => setShowSidebar(!showSidebar)}>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="hidden md:flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white"
+                            onClick={() => setShowSidebar(!showSidebar)}
+                        >
+                            {showSidebar ? (
+                                <PanelLeftClose className="h-4 w-4" />
+                            ) : (
+                                <PanelLeftOpen className="h-4 w-4" />
+                            )}
                             {showSidebar ? "Hide History" : "Show History"}
                         </Button>
                         <Link href="/chat/history">
@@ -194,8 +204,8 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
 
                 {/* Main Chat Area */}
                 <div className="flex flex-1 flex-col">
-                    <div className="container flex max-w-4xl flex-1 flex-col px-4 py-4">
-                        <div className="flex-1 overflow-auto rounded-lg border bg-white p-4 shadow-sm">
+                    <div className="container flex max-w-4xl flex-1 flex-col px-4 py-8">
+                        <div className="flex-1 overflow-auto rounded-lg border bg-white p-6 shadow-sm">
                             <div className="space-y-4">
                                 <AnimatePresence>
                                     {messages
@@ -268,15 +278,15 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
                                 <Button
                                     type="submit"
                                     disabled={isLoading || !input.trim()}
-                                    className="flex-shrink-0 bg-gradient-to-r from-purple-600 to-indigo-600"
+                                    className="flex-shrink-0 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                                 >
-                                    <Send className="h-4 w-4" />
+                                    <Send className="h-4 w-4 text-white" />
                                 </Button>
                             </div>
                         </form>
 
-                        <div className="mt-4 text-center text-xs text-gray-500">
-                            SARA is an AI assistant and may produce inaccurate information about properties or availability.
+                        <div className="text-center text-sm text-gray-500 mt-4 mb-8 px-4">
+                            SARA is an AI assistant and may produce inaccurate information about properties or availability
                         </div>
                     </div>
                 </div>
