@@ -173,17 +173,6 @@ export default function Home() {
                                     </Link>
                                 </div>
                             </motion.div>
-
-                            {/* Scroll indicator */}
-                            <motion.div
-                                className="absolute bottom-8 left-1/2 -translate-x-1/2"
-                                animate={{ y: [0, 10, 0] }}
-                                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
-                            >
-                                <div className="w-6 h-10 rounded-full border-2 border-white/70 flex items-center justify-center">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" />
-                                </div>
-                            </motion.div>
                         </div>
                     </div>
                 </motion.section>
