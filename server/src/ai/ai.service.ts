@@ -1,220 +1,255 @@
 // src/ai/ai.service.ts
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 import { SaraAgent } from './agent/sara-agent';
-import { MemoryManager } from './memory/memory-manager';
-import { StreamingService } from './streaming/streaming-service';
-import { PropertySearchTool } from './tools/property-search.tool';
-import { BookingCheckTool } from './tools/booking-check.tool';
-import { UserPreferencesTool } from './tools/user-preferences.tool';
-import { streamText, type Message, type ToolSet } from 'ai';
-import { tool } from 'ai';
-import { z } from 'zod';
+import { Property, Review, Booking, Amenity } from '@prisma/client';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+
+interface ChatOptions {
+    role: 'host' | 'guest';
+    context?: Record<string, any>;
+    conversationHistory?: Array<{
+        role: 'user' | 'assistant';
+        content: string;
+    }>;
+}
+
+interface PropertyData {
+    property: Property;
+    reviews: Review[];
+    bookings: Booking[];
+    amenities: Amenity[];
+}
 
 @Injectable()
 export class AIService {
     private readonly logger = new Logger(AIService.name);
-    private tools: ToolSet;
-    private readonly MAX_RETRIES = 3;
-    private readonly TIMEOUT_MS = 30000; // 30 seconds
+    private agentExecutor: any;
+    private agentConfig: any;
 
     constructor(
+        private readonly configService: ConfigService,
+        private readonly prisma: PrismaService,
+        private readonly cloudinaryService: CloudinaryService,
         private readonly saraAgent: SaraAgent,
-        private readonly memoryManager: MemoryManager,
-        private readonly streamingService: StreamingService,
-        private readonly propertySearchTool: PropertySearchTool,
-        private readonly bookingCheckTool: BookingCheckTool,
-        private readonly userPreferencesTool: UserPreferencesTool,
     ) {
-        // Convert tools to Vercel AI SDK format
-        this.tools = {
-            propertySearch: tool({
-                description: 'Search for properties based on criteria',
-                parameters: z.object({
-                    criteria: z.object({
-                        location: z.string().optional(),
-                        checkIn: z.string().optional(),
-                        checkOut: z.string().optional(),
-                        guests: z.number().optional(),
-                        priceMin: z.number().optional(),
-                        priceMax: z.number().optional(),
-                        propertyTypes: z.array(z.string()).optional(),
-                        amenities: z.array(z.string()).optional(),
-                    }).describe('Search criteria for properties')
-                }),
-                execute: async ({ criteria }) => {
-                    try {
-                        return await this.propertySearchTool.call(JSON.stringify(criteria));
-                    } catch (error) {
-                        this.logger.error(`Property search failed: ${error.message}`);
-                        throw new Error('Failed to search properties. Please try again.');
-                    }
-                }
-            }),
-            bookingCheck: tool({
-                description: 'Check booking availability',
-                parameters: z.object({
-                    bookingDetails: z.object({
-                        propertyId: z.string(),
-                        checkIn: z.string(),
-                        checkOut: z.string(),
-                        guests: z.number(),
-                    }).describe('Booking details to check')
-                }),
-                execute: async ({ bookingDetails }) => {
-                    try {
-                        return await this.bookingCheckTool.call(JSON.stringify(bookingDetails));
-                    } catch (error) {
-                        this.logger.error(`Booking check failed: ${error.message}`);
-                        throw new Error('Failed to check booking availability. Please try again.');
-                    }
-                }
-            }),
-            userPreferences: tool({
-                description: 'Get or update user preferences',
-                parameters: z.object({
-                    action: z.enum(['get', 'update']).describe('Action to perform'),
-                    userId: z.string().describe('User ID'),
-                    preferences: z.object({
-                        language: z.string().optional(),
-                        currency: z.string().optional(),
-                        notifications: z.boolean().optional(),
-                    }).optional().describe('User preferences to update')
-                }),
-                execute: async ({ action, userId, preferences }) => {
-                    try {
-                        return await this.userPreferencesTool.call(JSON.stringify({
-                            action,
-                            userId,
-                            preferences
-                        }));
-                    } catch (error) {
-                        this.logger.error(`User preferences operation failed: ${error.message}`);
-                        throw new Error('Failed to manage user preferences. Please try again.');
-                    }
-                }
-            })
-        };
+        this.initializeAgent();
     }
 
-    async processChatMessage(userId: string, message: string) {
-        if (!userId || !message) {
-            throw new Error('User ID and message are required');
-        }
-
+    private async initializeAgent() {
         try {
-            // Get conversation history and user preferences
-            const [conversationHistory, userPreferences] = await Promise.all([
-                this.memoryManager.getConversationString(userId, 'default'),
-                this.memoryManager.getUserPreferences(userId)
-            ]);
+            const { agent, config } = await this.saraAgent.createAgentExecutor();
+            this.agentExecutor = agent;
+            this.agentConfig = config;
+        } catch (error) {
+            this.logger.error('Failed to initialize agent:', error);
+            throw error;
+        }
+    }
 
-            // Save user message immediately
-            await this.memoryManager.saveMessage(userId, 'default', 'user', message);
+    async analyzeSentiment(text: string) {
+        try {
+            const response = await this.saraAgent.analyzeSentiment(text);
+            return { sentiment: response };
+        } catch (error) {
+            this.logger.error('Error analyzing sentiment:', error);
+            throw error;
+        }
+    }
 
-            // Create stream using Vercel AI SDK with timeout
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
-                    reject(new Error('Request timed out'));
-                }, this.TIMEOUT_MS);
-            });
+    async generatePropertyInsights(data: PropertyData) {
+        try {
+            const response = await this.saraAgent.generatePropertyInsights(data);
+            return this.parseAIResponse(response);
+        } catch (error) {
+            this.logger.error('Error generating property insights:', error);
+            throw error;
+        }
+    }
 
-            try {
-                const streamResult = await Promise.race([
-                    streamText({
-                        model: null,
-                        messages: [{
-                            role: 'user',
-                            content: message
-                        }],
-                        tools: this.tools,
-                        system: `You are a helpful AI assistant for a property rental platform. 
-                                Use the provided tools to help users find and book properties.
-                                Consider user preferences and conversation history when responding.
-                                Current conversation history: ${conversationHistory}
-                                User preferences: ${JSON.stringify(userPreferences)}`,
-                        maxSteps: 10
-                    }),
-                    timeoutPromise
-                ]) as { textStream: AsyncIterable<string> };
+    async generatePricingRecommendation(data: {
+        property: Property;
+        marketData: any[];
+        bookings: Booking[];
+        reviews: Review[];
+    }) {
+        try {
+            const response = await this.saraAgent.generatePricingRecommendation(data);
+            return this.parseAIResponse(response);
+        } catch (error) {
+            this.logger.error('Error generating pricing recommendation:', error);
+            throw error;
+        }
+    }
 
-                // Process the stream and save the complete response
-                let fullResponse = '';
-                for await (const chunk of streamResult.textStream) {
-                    fullResponse += chunk;
+    async generateHostingTips(data: {
+        host: any;
+        properties: Property[];
+    }) {
+        try {
+            const response = await this.saraAgent.generateHostingTips(data);
+            return this.parseAIResponse(response);
+        } catch (error) {
+            this.logger.error('Error generating hosting tips:', error);
+            throw error;
+        }
+    }
+
+    async generatePropertyImprovementSuggestions(data: PropertyData) {
+        try {
+            const response = await this.saraAgent.generatePropertyImprovementSuggestions(data);
+            return this.parseAIResponse(response);
+        } catch (error) {
+            this.logger.error('Error generating property improvement suggestions:', error);
+            throw error;
+        }
+    }
+
+    async processChatMessage(userId: string, message: string, options: ChatOptions) {
+        try {
+            const systemMessage = this.buildSystemMessage(options.role, options.context);
+
+            // Convert conversation history to proper format
+            const messages = [
+                new SystemMessage(systemMessage),
+                ...(options.conversationHistory || []).map(msg =>
+                    msg.role === 'user' ? new HumanMessage(msg.content) : new SystemMessage(msg.content)
+                ),
+                new HumanMessage(message)
+            ];
+
+            const response = await this.saraAgent.processMessage(
+                userId,
+                'default-session',
+                message,
+                this.agentExecutor,
+                this.agentConfig,
+                JSON.stringify(options.conversationHistory || []),
+                JSON.stringify(options.context || {}),
+                {
+                    onToken: (token: string) => {
+                        this.logger.debug(`Received token: ${token}`);
+                    },
+                    onError: (error: Error) => {
+                        this.logger.error(`Error in chat processing: ${error.message}`);
+                    }
                 }
+            );
 
-                // Save AI response
-                await this.memoryManager.saveMessage(userId, 'default', 'ai', fullResponse);
-
-                return streamResult.textStream;
-            } catch (error) {
-                if (error.message === 'Request timed out') {
-                    this.logger.error('Request timed out');
-                    throw new Error('The request took too long to process. Please try again.');
-                }
-                throw error;
-            }
+            return response.output;
         } catch (error) {
             this.logger.error(`Error processing chat message: ${error.message}`);
-            throw new Error('Failed to process message. Please try again.');
+            throw error;
         }
     }
 
-    async searchProperties(criteria: any) {
+    async analyzePropertyImage(imageUrl: string) {
         try {
-            return await this.propertySearchTool.call(JSON.stringify(criteria));
+            const response = await this.saraAgent.analyzeImage(imageUrl);
+            return response.analysis;
         } catch (error) {
-            this.logger.error(`Property search failed: ${error.message}`);
-            throw new Error('Failed to search properties. Please try again.');
+            this.logger.error('Error analyzing property image:', error);
+            throw error;
         }
     }
 
-    async checkBookingAvailability(bookingDetails: any) {
+    async getPropertyInsights(propertyId: string) {
         try {
-            return await this.bookingCheckTool.call(JSON.stringify(bookingDetails));
-        } catch (error) {
-            this.logger.error(`Booking check failed: ${error.message}`);
-            throw new Error('Failed to check booking availability. Please try again.');
-        }
-    }
+            const property = await this.prisma.property.findUnique({
+                where: { id: propertyId },
+                include: {
+                    images: true,
+                    amenities: {
+                        include: {
+                            amenity: true
+                        }
+                    },
+                    reviews: true,
+                    bookings: true
+                }
+            });
 
-    async getUserPreferences(userId: string) {
-        try {
-            return await this.userPreferencesTool.call(JSON.stringify({
-                action: 'get',
-                userId
-            }));
-        } catch (error) {
-            this.logger.error(`Get user preferences failed: ${error.message}`);
-            throw new Error('Failed to get user preferences. Please try again.');
-        }
-    }
+            if (!property) {
+                throw new Error('Property not found');
+            }
 
-    async updateUserPreferences(userId: string, preferences: any) {
-        try {
-            return await this.userPreferencesTool.call(JSON.stringify({
-                action: 'update',
-                userId,
-                preferences
-            }));
-        } catch (error) {
-            this.logger.error(`Update user preferences failed: ${error.message}`);
-            throw new Error('Failed to update user preferences. Please try again.');
-        }
-    }
+            // Analyze property images
+            const imageAnalyses = await Promise.all(
+                property.images.map(async image => ({
+                    imageUrl: image.imageUrl,
+                    analysis: await this.analyzePropertyImage(image.imageUrl)
+                }))
+            );
 
-    async getPropertyRecommendations(userId: string, searchCriteria?: any) {
-        try {
-            const criteria = {
-                ...searchCriteria,
-                userId,
-                page: 1,
-                pageSize: 5
+            const response = await this.saraAgent.generatePropertyInsights({
+                property,
+                reviews: property.reviews,
+                bookings: property.bookings,
+                amenities: property.amenities.map(a => a.amenity)
+            });
+
+            return {
+                insights: response,
+                imageAnalyses
             };
-            return await this.searchProperties(criteria);
         } catch (error) {
-            this.logger.error(`Get property recommendations failed: ${error.message}`);
-            throw new Error('Failed to get property recommendations. Please try again.');
+            this.logger.error('Error getting property insights:', error);
+            throw error;
+        }
+    }
+
+    async getPropertyRecommendations(userId: string, searchCriteria: Record<string, any>) {
+        try {
+            const response = await this.saraAgent.generatePropertyRecommendations({
+                userId,
+                searchCriteria
+            });
+
+            return this.parseAIResponse(response);
+        } catch (error) {
+            this.logger.error('Error getting property recommendations:', error);
+            throw error;
+        }
+    }
+
+    private buildSystemMessage(role: 'host' | 'guest', context?: Record<string, any>): string {
+        const baseMessage = `
+            You are SARA (Shortlet Apartment Realtor Agent), an AI-powered assistant specialized in helping users find and book short-term accommodations.
+            Your primary goal is to assist users through friendly, conversational interaction.
+        `;
+
+        const roleSpecificMessage = role === 'host'
+            ? `
+                As a host assistant, you should:
+                1. Help hosts optimize their property listings
+                2. Provide insights about guest feedback
+                3. Suggest improvements for better guest experience
+                4. Guide hosts through property management
+                5. Help with pricing and availability management
+            `
+            : `
+                As a guest assistant, you should:
+                1. Help guests find properties that match their needs
+                2. Answer questions about properties and locations
+                3. Guide guests through the booking process
+                4. Provide personalized recommendations
+                5. Help with any booking-related issues
+            `;
+
+        return `${baseMessage}\n${roleSpecificMessage}`;
+    }
+
+    private parseAIResponse(response: any): any {
+        try {
+            if (typeof response === 'string') {
+                return JSON.parse(response);
+            }
+            return response;
+        } catch (error) {
+            this.logger.warn(`Failed to parse AI response: ${error.message}`);
+            return response;
         }
     }
 }

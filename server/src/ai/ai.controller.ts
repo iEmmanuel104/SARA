@@ -33,7 +33,7 @@ export class AIController {
         res.setHeader('Connection', 'keep-alive');
 
         // Process the message and return streaming response
-        const stream = await this.aiService.processChatMessage(userId, message);
+        const stream = await this.aiService.processChatMessage(userId, message, { role: 'guest' });
 
         // Pipe the stream to the response
         for await (const chunk of stream) {

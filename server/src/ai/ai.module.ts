@@ -10,11 +10,15 @@ import { StreamingService } from './streaming/streaming-service';
 import { PropertySearchTool } from './tools/property-search.tool';
 import { BookingCheckTool } from './tools/booking-check.tool';
 import { UserPreferencesTool } from './tools/user-preferences.tool';
+import { NLPSearchTool } from './tools/nlp-search.tool';
+import { PropertyRecommendationsTool } from './tools/property-recommendations.tool';
+import { CloudinaryModule } from '../common/cloudinary/cloudinary.module';
 
 @Module({
     imports: [
         ConfigModule,
         PrismaModule,
+        CloudinaryModule,
     ],
     controllers: [AIController],
     providers: [
@@ -25,7 +29,17 @@ import { UserPreferencesTool } from './tools/user-preferences.tool';
         PropertySearchTool,
         BookingCheckTool,
         UserPreferencesTool,
+        NLPSearchTool,
+        PropertyRecommendationsTool,
     ],
-    exports: [AIService],
+    exports: [
+        AIService,
+        SaraAgent,
+        PropertySearchTool,
+        BookingCheckTool,
+        UserPreferencesTool,
+        NLPSearchTool,
+        PropertyRecommendationsTool,
+    ],
 })
 export class AIModule { }

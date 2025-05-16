@@ -42,6 +42,7 @@ model User {
   privyUserId            String?              @unique
   walletAddress          String?              @unique
   linkedAccounts         Json                 @default("[]")
+  role                   UserRole             @default(USER)
 
   // Relations
   referredBy             User?                @relation("UserReferrals", fields: [referredById], references: [id])
@@ -920,4 +921,49 @@ model FeatureFlag {
   updatedAt       DateTime  @updatedAt
 
   @@index([flagKey])
+}
+
+enum UserRole {
+  USER
+  HOST
+  ADMIN
+}
+
+model SecurityLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  ipAddress   String?
+  userAgent   String?
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Token {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  type        String   // refresh, access, etc.
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
 }
