@@ -1,7 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { AgentKit, ActionProvider, Action, Network, SmartWalletProvider, cdpApiActionProvider } from '@coinbase/agentkit';
+import {
+    AgentKit,
+    ActionProvider,
+    Action,
+    Network,
+    PrivyWalletProvider,
+    cdpApiActionProvider,
+    PrivyWalletConfig,
+    PrivyEvmWalletProvider
+} from '@coinbase/agentkit';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
@@ -122,6 +131,7 @@ export class SaraAgent {
     private model: ChatOpenAI;
     private agentKit: AgentKit;
     private tools: Tool[];
+    private agentWallet: PrivyEvmWalletProvider;
 
     constructor(
         private prisma: PrismaService,
@@ -163,18 +173,22 @@ export class SaraAgent {
                 this.propertyRecommendationsTool
             );
 
-            const networkId = this.configService.get<string>('NETWORK_ID', 'base-sepolia');
-            const privateKey = (this.configService.get<string>('PRIVATE_KEY') || generatePrivateKey()) as Hex;
-            const signer = privateKeyToAccount(privateKey);
+            // Configure Agent's Wallet Provider
+            const config: PrivyWalletConfig = {
+                appId: this.configService.get<string>('PRIVY_APP_ID'),
+                appSecret: this.configService.get<string>('PRIVY_APP_SECRET'),
+                chainId: this.configService.get<string>('CHAIN_ID', '84532'), // base-sepolia
+                // walletId: this.configService.get<string>('PRIVY_WALLET_ID'),
+                // authorizationPrivateKey: this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY'),
+                // authorizationKeyId: this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_KEY_ID'),
+            };
 
-            const walletProvider = await SmartWalletProvider.configureWithWallet({
-                networkId,
-                signer,
-                paymasterUrl: undefined,
-            });
+            // Initialize the agent's wallet
+            this.agentWallet = await PrivyWalletProvider.configureWithWallet(config);
 
+            // Initialize AgentKit with the agent's wallet
             this.agentKit = await AgentKit.from({
-                walletProvider,
+                walletProvider: this.agentWallet,
                 actionProviders: [
                     saraActionProvider,
                     cdpApiActionProvider({
@@ -184,8 +198,40 @@ export class SaraAgent {
                 ],
             });
 
+            // Log the agent's wallet address for reference
+            const agentAddress = await this.agentWallet.getAddress();
+            console.log(`SARA Agent Wallet Address: ${agentAddress}`);
+
         } catch (error) {
             console.error('Failed to initialize AgentKit:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get the agent's wallet address
+     */
+    async getAgentWalletAddress(): Promise<string> {
+        return await this.agentWallet.getAddress();
+    }
+
+    /**
+     * Process a transaction between user and agent
+     */
+    async processTransaction(userWalletId: string, amount: string, description: string) {
+        try {
+            // Here you would implement the logic to:
+            // 1. Verify the user's wallet
+            // 2. Process the transaction
+            // 3. Update the database
+            // 4. Return transaction details
+            return {
+                success: true,
+                message: 'Transaction processed successfully',
+                // Add more transaction details as needed
+            };
+        } catch (error) {
+            console.error('Error processing transaction:', error);
             throw error;
         }
     }
