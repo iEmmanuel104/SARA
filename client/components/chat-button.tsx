@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function ChatButton() {
     const [isHovered, setIsHovered] = useState(false)
+    const pathname = usePathname()
+
+    if (pathname.startsWith("/chat")) {
+        return null
+    }
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
