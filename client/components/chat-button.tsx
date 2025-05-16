@@ -20,7 +20,7 @@ export function ChatButton() {
             <Link href="/chat">
                 <Button
                     size="lg"
-                    className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 p-0 shadow-lg"
+                    className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-0 shadow-lg"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >

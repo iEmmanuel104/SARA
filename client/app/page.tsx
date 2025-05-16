@@ -125,7 +125,7 @@ export default function Home() {
                                     <Button
                                         size="lg"
                                         variant="outline"
-                                        className="w-full border-white text-white hover:bg-white/20 text-lg font-medium shadow-lg"
+                                        className="w-full border-white text-white hover:bg-white/20 text-lg font-medium shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600"
                                     >
                                         <MessageSquare className="mr-2 h-5 w-5" />
                                         Chat with SARA
