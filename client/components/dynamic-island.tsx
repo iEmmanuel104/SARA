@@ -186,12 +186,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <Home className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Home</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Home</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Home
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -199,12 +202,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <MessageSquare className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Chat</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Chat</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Chat
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -212,12 +218,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <Search className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Explore</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Explore</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Explore
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -225,12 +234,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <Heart className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Saved</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Saved</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Saved
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -238,24 +250,30 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <Calendar className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Bookings</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Bookings</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Bookings
+                                                </div>
                                             </motion.div>
                                         </Link>
 
                                         <motion.div
                                             whileHover={{ scale: 1.1, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
-                                            className="flex flex-col items-center justify-center"
+                                            className="flex flex-col items-center justify-center group relative"
                                         >
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                 <Menu className="h-4 w-4 text-white" />
                                             </div>
-                                            <span className="text-white text-xs mt-1">Menu</span>
+                                            <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
+                                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                Menu
+                                            </div>
                                         </motion.div>
                                     </>
                                 ) : (
@@ -265,12 +283,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <MessageSquare className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Chat</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Chat</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Chat
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -278,12 +299,15 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <Search className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Explore</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Explore</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Explore
+                                                </div>
                                             </motion.div>
                                         </Link>
 
@@ -291,24 +315,30 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
                                             <motion.div
                                                 whileHover={{ scale: 1.1, y: -2 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center"
+                                                className="flex flex-col items-center justify-center group relative"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                     <LogIn className="h-4 w-4 text-white" />
                                                 </div>
-                                                <span className="text-white text-xs mt-1">Sign In</span>
+                                                <span className="text-white text-xs mt-1 hidden md:block">Sign In</span>
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                    Sign In
+                                                </div>
                                             </motion.div>
                                         </Link>
 
                                         <motion.div
                                             whileHover={{ scale: 1.1, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
-                                            className="flex flex-col items-center justify-center"
+                                            className="flex flex-col items-center justify-center group relative"
                                         >
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
                                                 <Menu className="h-4 w-4 text-white" />
                                             </div>
-                                            <span className="text-white text-xs mt-1">Menu</span>
+                                            <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
+                                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                                Menu
+                                            </div>
                                         </motion.div>
                                     </>
                                 )}
