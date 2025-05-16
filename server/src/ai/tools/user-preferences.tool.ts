@@ -2,36 +2,18 @@
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Action } from '@coinbase/agentkit';
 
 @Injectable()
-export class UserPreferencesTool extends Tool {
+export class UserPreferencesTool extends Tool implements Action {
     name = 'user-preferences';
     description = `
-    Get or update user preferences. This tool can fetch the user's current preferences or store new preferences.
-    
-    For fetching preferences, input should be a JSON object with:
+    Manage and retrieve user preferences.
+    Input should be a JSON object with:
     {
-      "action": "get",
-      "userId": string // ID of the user
-    }
-    
-    For updating preferences, input should be a JSON object with:
-    {
-      "action": "update",
-      "userId": string, // ID of the user
-      "preferences": {
-        // Preference values to update
-        "favoriteLocations": string[], // Optional array of preferred locations
-        "preferredPropertyTypes": string[], // Optional array of preferred property types
-        "preferredAmenities": string[], // Optional array of preferred amenities
-        "budgetRange": { // Optional budget range
-          "min": number,
-          "max": number,
-          "currency": string
-        },
-        "travelStyle": string, // Optional travel style (business, leisure, family, etc.)
-        "mustHaveAmenities": string[] // Optional deal-breaker amenities
-      }
+      "userId": string, // User ID
+      "action": string, // 'get' or 'update'
+      "preferences": object // Preferences to update (only for 'update' action)
     }
   `;
 
@@ -39,7 +21,11 @@ export class UserPreferencesTool extends Tool {
         super();
     }
 
-    async _call(input: string): Promise<string> {
+    async execute(input: string): Promise<string> {
+        return this._call(input);
+    }
+
+    protected async _call(input: string): Promise<string> {
         try {
             const params = JSON.parse(input);
             const { action, userId } = params;

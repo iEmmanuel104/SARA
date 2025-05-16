@@ -3,17 +3,18 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MemoryManager } from '../memory/memory-manager';
+import { Action } from '@coinbase/agentkit';
 
 @Injectable()
-export class NLPSearchTool extends Tool {
+export class NLPSearchTool extends Tool implements Action {
     name = 'nlp-search';
     description = `
-    Process natural language search queries and convert them to structured search criteria.
+    Perform natural language search for properties.
     Input should be a JSON object with:
     {
       "query": string, // Natural language search query
-      "userId": string, // User ID for context
-      "sessionId": string // Session ID for conversation context
+      "userId": string, // User ID (optional)
+      "context": object // Additional context (optional)
     }
   `;
 
@@ -22,6 +23,10 @@ export class NLPSearchTool extends Tool {
         private memoryManager: MemoryManager
     ) {
         super();
+    }
+
+    async execute(input: string): Promise<string> {
+        return this._call(input);
     }
 
     protected async _call(input: string): Promise<string> {

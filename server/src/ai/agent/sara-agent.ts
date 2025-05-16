@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { AgentKit } from '@coinbase/agentkit';
+import { AgentKit, ActionProvider, Action, Network } from '@coinbase/agentkit';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
@@ -12,7 +12,107 @@ import { BookingCheckTool } from '../tools/booking-check.tool';
 import { UserPreferencesTool } from '../tools/user-preferences.tool';
 import { NLPSearchTool } from '../tools/nlp-search.tool';
 import { PropertyRecommendationsTool } from '../tools/property-recommendations.tool';
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { z } from 'zod';
+
+// Custom action provider for SARA tools
+class SaraActionProvider extends ActionProvider {
+    constructor(
+        private readonly propertySearchTool: PropertySearchTool,
+        private readonly bookingCheckTool: BookingCheckTool,
+        private readonly userPreferencesTool: UserPreferencesTool,
+        private readonly nlpSearchTool: NLPSearchTool,
+        private readonly propertyRecommendationsTool: PropertyRecommendationsTool
+    ) {
+        super('sara-tools', []);
+    }
+
+    getActions(): Action[] {
+        return [
+            {
+                name: 'property_search',
+                description: this.propertySearchTool.description,
+                schema: z.object({
+                    location: z.string(),
+                    checkIn: z.string(),
+                    checkOut: z.string(),
+                    guests: z.number(),
+                    priceMin: z.number().optional(),
+                    priceMax: z.number().optional(),
+                    propertyTypes: z.array(z.string()).optional(),
+                    amenities: z.array(z.string()).optional(),
+                    page: z.number().optional(),
+                    pageSize: z.number().optional()
+                }),
+                invoke: async (args) => {
+                    const result = await this.propertySearchTool.execute(JSON.stringify(args));
+                    return typeof result === 'string' ? result : JSON.stringify(result);
+                }
+            },
+            {
+                name: 'booking_check',
+                description: this.bookingCheckTool.description,
+                schema: z.object({
+                    propertyId: z.string(),
+                    checkIn: z.string(),
+                    checkOut: z.string(),
+                    guests: z.number()
+                }),
+                invoke: async (args) => {
+                    const result = await this.bookingCheckTool.execute(JSON.stringify(args));
+                    return typeof result === 'string' ? result : JSON.stringify(result);
+                }
+            },
+            {
+                name: 'user_preferences',
+                description: this.userPreferencesTool.description,
+                schema: z.object({
+                    userId: z.string(),
+                    action: z.enum(['get', 'update']),
+                    preferences: z.record(z.any()).optional()
+                }),
+                invoke: async (args) => {
+                    const result = await this.userPreferencesTool.execute(JSON.stringify(args));
+                    return typeof result === 'string' ? result : JSON.stringify(result);
+                }
+            },
+            {
+                name: 'nlp_search',
+                description: this.nlpSearchTool.description,
+                schema: z.object({
+                    query: z.string(),
+                    userId: z.string().optional(),
+                    context: z.record(z.any()).optional()
+                }),
+                invoke: async (args) => {
+                    const result = await this.nlpSearchTool.execute(JSON.stringify(args));
+                    return typeof result === 'string' ? result : JSON.stringify(result);
+                }
+            },
+            {
+                name: 'property_recommendations',
+                description: this.propertyRecommendationsTool.description,
+                schema: z.object({
+                    userId: z.string(),
+                    limit: z.number().optional(),
+                    context: z.object({
+                        searchCriteria: z.record(z.any()).optional(),
+                        sessionId: z.string().optional()
+                    }).optional()
+                }),
+                invoke: async (args) => {
+                    const result = await this.propertyRecommendationsTool.execute(JSON.stringify(args));
+                    return typeof result === 'string' ? result : JSON.stringify(result);
+                }
+            }
+        ];
+    }
+
+    supportsNetwork(_network: Network): boolean {
+        // Since our tools don't depend on any specific network, we can support all networks
+        // The Network type from AgentKit doesn't have a name property, so we'll just return true
+        return true;
+    }
+}
 
 @Injectable()
 export class SaraAgent {
@@ -52,30 +152,18 @@ export class SaraAgent {
 
     private async initializeAgentKit() {
         try {
+            // Create our custom action provider
+            const saraActionProvider = new SaraActionProvider(
+                this.propertySearchTool,
+                this.bookingCheckTool,
+                this.userPreferencesTool,
+                this.nlpSearchTool,
+                this.propertyRecommendationsTool
+            );
+
             // Initialize AgentKit with proper configuration
             this.agentKit = await AgentKit.from({
-                actionProviders: [
-                    {
-                        name: 'property_search',
-                        provider: this.propertySearchTool,
-                    },
-                    {
-                        name: 'booking_check',
-                        provider: this.bookingCheckTool,
-                    },
-                    {
-                        name: 'user_preferences',
-                        provider: this.userPreferencesTool,
-                    },
-                    {
-                        name: 'nlp_search',
-                        provider: this.nlpSearchTool,
-                    },
-                    {
-                        name: 'property_recommendations',
-                        provider: this.propertyRecommendationsTool,
-                    },
-                ],
+                actionProviders: [saraActionProvider]
             });
         } catch (error) {
             console.error('Failed to initialize AgentKit:', error);
@@ -187,7 +275,8 @@ export class SaraAgent {
                     {
                         type: 'image_url',
                         image_url: {
-                            url: imageUrl
+                            url: imageUrl,
+                            detail: 'auto'
                         }
                     }
                 ]
@@ -382,6 +471,59 @@ export class SaraAgent {
         return this.parseAIResponse(this.extractContentString(response.content));
     }
 
+    /**
+     * Generates property recommendations based on user preferences and context
+     */
+    async generatePropertyRecommendations(data: {
+        userId: string;
+        limit?: number;
+        context?: {
+            searchCriteria?: Record<string, any>;
+            sessionId?: string;
+            userPreferences?: Record<string, any>;
+        };
+    }) {
+        try {
+            // First, get user preferences
+            const userPreferences = await this.userPreferencesTool.execute(JSON.stringify({
+                userId: data.userId,
+                action: 'get'
+            }));
+
+            // Then, use the property recommendations tool
+            const recommendations = await this.propertyRecommendationsTool.execute(JSON.stringify({
+                userId: data.userId,
+                limit: data.limit || 5,
+                context: {
+                    ...data.context,
+                    userPreferences: typeof userPreferences === 'string' ? JSON.parse(userPreferences) : userPreferences
+                }
+            }));
+
+            // Format the response
+            const messages = this.convertToBaseMessages([
+                {
+                    role: 'system',
+                    content: 'You are an expert in property recommendations. Format the recommendations in a clear and structured way.'
+                },
+                {
+                    role: 'user',
+                    content: this.buildPropertyRecommendationsPrompt({
+                        ...data,
+                        recommendations: typeof recommendations === 'string' ? JSON.parse(recommendations) : recommendations
+                    })
+                }
+            ]);
+
+            const response = await this.model.invoke(messages);
+            const content = this.extractContentString(response.content);
+            return this.parseAIResponse(content);
+        } catch (error) {
+            console.error('Error generating property recommendations:', error);
+            throw error;
+        }
+    }
+
     private buildPropertyInsightsPrompt(data: {
         property: any;
         reviews: any[];
@@ -483,6 +625,37 @@ export class SaraAgent {
             Amenities: ${JSON.stringify(data.amenities, null, 2)}
             
             Please provide detailed suggestions for improving this property based on the data above.
+        `;
+    }
+
+    private buildPropertyRecommendationsPrompt(data: {
+        userId: string;
+        limit?: number;
+        context?: {
+            searchCriteria?: Record<string, any>;
+            sessionId?: string;
+        };
+        recommendations?: any;
+    }): string {
+        return `
+            User ID: ${data.userId}
+            Recommendation Limit: ${data.limit || 5}
+            
+            Context:
+            ${data.context ? `
+                Search Criteria: ${JSON.stringify(data.context.searchCriteria || {}, null, 2)}
+                Session ID: ${data.context.sessionId || 'N/A'}
+            ` : 'No additional context provided'}
+            
+            Recommendations:
+            ${data.recommendations ? JSON.stringify(data.recommendations, null, 2) : 'No recommendations available'}
+            
+            Please provide:
+            1. A summary of the recommendations
+            2. Key features that match user preferences
+            3. Potential benefits for the user
+            4. Any special considerations or notes
+            5. Next steps or suggested actions
         `;
     }
 

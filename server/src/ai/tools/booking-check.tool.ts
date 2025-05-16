@@ -2,18 +2,19 @@
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Action } from '@coinbase/agentkit';
 
 @Injectable()
-export class BookingCheckTool extends Tool {
-    name = 'booking-availability-check';
+export class BookingCheckTool extends Tool implements Action {
+    name = 'booking-check';
     description = `
-    Check if a property is available for booking during specific dates.
+    Check booking availability and status for properties.
     Input should be a JSON object with:
     {
-      "propertyId": string, // The ID of the property to check
-      "checkIn": string,   // Check-in date in YYYY-MM-DD format
-      "checkOut": string,  // Check-out date in YYYY-MM-DD format
-      "guests": number     // Number of guests
+      "propertyId": string, // Property ID to check
+      "checkIn": string, // Check-in date (YYYY-MM-DD)
+      "checkOut": string, // Check-out date (YYYY-MM-DD)
+      "guests": number // Number of guests
     }
   `;
 
@@ -21,7 +22,11 @@ export class BookingCheckTool extends Tool {
         super();
     }
 
-    async _call(input: string): Promise<string> {
+    async execute(input: string): Promise<string> {
+        return this._call(input);
+    }
+
+    protected async _call(input: string): Promise<string> {
         try {
             const { propertyId, checkIn, checkOut, guests } = JSON.parse(input);
 

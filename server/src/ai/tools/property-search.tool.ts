@@ -2,9 +2,10 @@
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Action } from '@coinbase/agentkit';
 
 @Injectable()
-export class PropertySearchTool extends Tool {
+export class PropertySearchTool extends Tool implements Action {
     name = 'property-search';
     description = `
     Search for properties based on specified criteria.
@@ -25,6 +26,10 @@ export class PropertySearchTool extends Tool {
 
     constructor(private prisma: PrismaService) {
         super();
+    }
+
+    async execute(input: string): Promise<string> {
+        return this._call(input);
     }
 
     protected async _call(input: string): Promise<string> {

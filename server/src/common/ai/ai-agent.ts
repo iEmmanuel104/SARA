@@ -168,7 +168,10 @@ export class AIAgent {
                         },
                         {
                             type: 'image_url',
-                            image_url: imageUrl
+                            image_url: {
+                                url: imageUrl,
+                                detail: 'auto'
+                            }
                         }
                     ]
                 }

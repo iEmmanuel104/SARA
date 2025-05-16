@@ -204,7 +204,9 @@ export class AIService {
         try {
             const response = await this.saraAgent.generatePropertyRecommendations({
                 userId,
-                searchCriteria
+                context: {
+                    searchCriteria
+                }
             });
 
             return this.parseAIResponse(response);

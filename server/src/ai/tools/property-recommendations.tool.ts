@@ -3,9 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from '@langchain/core/tools';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MemoryManager } from '../memory/memory-manager';
+import { Action } from '@coinbase/agentkit';
 
 @Injectable()
-export class PropertyRecommendationsTool extends Tool {
+export class PropertyRecommendationsTool extends Tool implements Action {
     name = 'property-recommendations';
     description = `
     Get personalized property recommendations based on user preferences, history, and behavior.
@@ -25,6 +26,10 @@ export class PropertyRecommendationsTool extends Tool {
         private memoryManager: MemoryManager
     ) {
         super();
+    }
+
+    async execute(input: string): Promise<string> {
+        return this._call(input);
     }
 
     protected async _call(input: string): Promise<string> {
