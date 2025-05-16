@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { AgentKit, ActionProvider, Action, Network } from '@coinbase/agentkit';
+import { AgentKit, ActionProvider, Action, Network, SmartWalletProvider, cdpApiActionProvider } from '@coinbase/agentkit';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
@@ -13,6 +13,9 @@ import { UserPreferencesTool } from '../tools/user-preferences.tool';
 import { NLPSearchTool } from '../tools/nlp-search.tool';
 import { PropertyRecommendationsTool } from '../tools/property-recommendations.tool';
 import { z } from 'zod';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { Hex } from 'viem';
+import * as fs from 'fs';
 
 // Custom action provider for SARA tools
 class SaraActionProvider extends ActionProvider {
@@ -152,7 +155,6 @@ export class SaraAgent {
 
     private async initializeAgentKit() {
         try {
-            // Create our custom action provider
             const saraActionProvider = new SaraActionProvider(
                 this.propertySearchTool,
                 this.bookingCheckTool,
@@ -161,10 +163,27 @@ export class SaraAgent {
                 this.propertyRecommendationsTool
             );
 
-            // Initialize AgentKit with proper configuration
-            this.agentKit = await AgentKit.from({
-                actionProviders: [saraActionProvider]
+            const networkId = this.configService.get<string>('NETWORK_ID', 'base-sepolia');
+            const privateKey = (this.configService.get<string>('PRIVATE_KEY') || generatePrivateKey()) as Hex;
+            const signer = privateKeyToAccount(privateKey);
+
+            const walletProvider = await SmartWalletProvider.configureWithWallet({
+                networkId,
+                signer,
+                paymasterUrl: undefined,
             });
+
+            this.agentKit = await AgentKit.from({
+                walletProvider,
+                actionProviders: [
+                    saraActionProvider,
+                    cdpApiActionProvider({
+                        apiKeyName: this.configService.get<string>('CDP_API_KEY_NAME'),
+                        apiKeyPrivateKey: this.configService.get<string>('CDP_API_KEY_PRIVATE_KEY'),
+                    }),
+                ],
+            });
+
         } catch (error) {
             console.error('Failed to initialize AgentKit:', error);
             throw error;
