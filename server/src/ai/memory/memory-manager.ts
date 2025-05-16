@@ -100,7 +100,7 @@ export class MemoryManager {
                     },
                 },
                 update: {
-                    lastActivityAt: new Date(),
+                    updatedAt: new Date(),
                     ...(role === 'user' ? { lastUserMessage: content } : {}),
                     ...(role === 'ai' ? { lastAiMessage: content } : {}),
                 },

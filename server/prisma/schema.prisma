@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -42,6 +41,7 @@ model User {
   notificationPreferences Json                @default("{\"email\": true, \"push\": true, \"sms\": false}")
   privyUserId            String?              @unique
   walletAddress          String?              @unique
+  linkedAccounts         Json                 @default("[]")
 
   // Relations
   referredBy             User?                @relation("UserReferrals", fields: [referredById], references: [id])
@@ -603,6 +603,7 @@ model AiConversation {
   user                User         @relation(fields: [userId], references: [id])
   messages            AiMessage[]
 
+  @@unique([userId, sessionId])
   @@index([userId])
   @@index([sessionId])
   @@index([createdAt])

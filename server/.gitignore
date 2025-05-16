@@ -57,3 +57,12 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 #prisma
 /generated
+
+# Prisma
+/prisma/.env
+/prisma/client
+/prisma/migrations/migration_lock.toml
+*.db
+node_modules/.prisma
+
+/.cursaor
