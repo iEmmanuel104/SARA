@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Add paths that should be accessible without authentication
-const publicPaths = ['/', '/signin', '/signup', '/about', '/contact'];
+const publicPaths = ['/', '/signin', '/signup', '/about', '/contact', '/dashboard', '/explore', '/chat'];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
 
     // If no access token and trying to access protected route, redirect to login
     if (!accessToken && !publicPaths.includes(pathname)) {
-        const url = new URL('/signin', request.url);
+        const url = new URL('/', request.url);
         // url.searchParams.set('from', pathname);
         return NextResponse.redirect(url);
     }

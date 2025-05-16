@@ -1,12 +1,12 @@
 "use client"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalendarDays, Heart, Search, MessageSquare, ArrowRight } from "lucide-react"
 import { ChatSearchBox } from "@/components/chat/chat-search-box"
 import { PropertyCard } from "@/components/property-card"
 import { DynamicIsland } from "@/components/dynamic-island"
+import "@/styles/animations.css"
 
 // Sample property data
 const featuredProperties = [
@@ -93,37 +93,22 @@ export default function Dashboard() {
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-indigo-100 to-purple-100 text-gray-900">
             <div className="container px-4 py-8 md:px-6 md:py-12 pt-24">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0"
-                >
+                <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 animate-slide-down">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
                         <p className="text-gray-500">Find your perfect stay with SARA, your AI rental assistant</p>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Main Chat Search Box */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="mt-8"
-                >
+                <div className="mt-8 animate-slide-up delay-200">
                     <ChatSearchBox />
-                </motion.div>
+                </div>
 
                 {/* Quick Links */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="mt-8 grid gap-6 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                >
+                <div className="mt-8 grid gap-6 w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-slide-up delay-300">
                     <Link href="/explore" className="w-full">
-                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                             <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-purple-100 p-3 mr-4">
                                     <Search className="h-6 w-6 text-purple-600" />
@@ -138,7 +123,7 @@ export default function Dashboard() {
                     </Link>
 
                     <Link href="/saved" className="w-full">
-                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                             <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-red-100 p-3 mr-4">
                                     <Heart className="h-6 w-6 text-red-500" />
@@ -153,7 +138,7 @@ export default function Dashboard() {
                     </Link>
 
                     <Link href="/bookings" className="w-full">
-                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                             <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-blue-100 p-3 mr-4">
                                     <CalendarDays className="h-6 w-6 text-blue-600" />
@@ -168,7 +153,7 @@ export default function Dashboard() {
                     </Link>
 
                     <Link href="/chat" className="w-full">
-                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                        <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                             <CardContent className="p-6 flex items-center w-full h-full">
                                 <div className="rounded-full bg-indigo-100 p-3 mr-4">
                                     <MessageSquare className="h-6 w-6 text-indigo-600" />
@@ -181,19 +166,14 @@ export default function Dashboard() {
                             </CardContent>
                         </Card>
                     </Link>
-                </motion.div>
+                </div>
 
                 {/* Featured Properties */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="mt-8"
-                >
+                <div className="mt-8 animate-slide-up delay-400">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-2xl font-bold">Featured Properties</h2>
                         <Link href="/explore">
-                            <Button variant="ghost" className="text-purple-600">
+                            <Button variant="ghost" className="text-purple-600 hover-scale">
                                 View All
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
@@ -205,17 +185,12 @@ export default function Dashboard() {
                             <PropertyCard key={property.id} property={property} variant="featured" />
                         ))}
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Dashboard Widgets */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    className="mt-8 grid gap-6 w-full md:grid-cols-2 lg:grid-cols-3"
-                >
+                <div className="mt-8 grid gap-6 w-full md:grid-cols-2 lg:grid-cols-3 animate-slide-up delay-500">
                     {/* Upcoming Bookings */}
-                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-medium">Upcoming Bookings</CardTitle>
                             <CardDescription>Your scheduled stays</CardDescription>
@@ -248,13 +223,7 @@ export default function Dashboard() {
                                 ) : (
                                     <div className="text-center py-6">
                                         <CalendarDays className="mx-auto h-10 w-10 text-gray-300" />
-                                        <h3 className="mt-2 font-medium">No upcoming bookings</h3>
-                                        <p className="mt-1 text-sm text-gray-500">When you book a stay, it will appear here</p>
-                                        <Link href="/explore">
-                                            <Button className="mt-4" size="sm">
-                                                Find a Place
-                                            </Button>
-                                        </Link>
+                                        <p className="mt-2 text-sm text-gray-500">No upcoming bookings</p>
                                     </div>
                                 )}
                             </div>
@@ -262,10 +231,10 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Saved Properties */}
-                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-medium">Saved Properties</CardTitle>
-                            <CardDescription>Properties you've saved</CardDescription>
+                            <CardDescription>Your favorite listings</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -282,72 +251,51 @@ export default function Dashboard() {
                                             <div className="flex-1 space-y-1">
                                                 <p className="font-medium">{property.title}</p>
                                                 <p className="text-sm text-gray-500">{property.location}</p>
-                                                <p className="font-medium text-purple-600">{property.price}/night</p>
+                                                <p className="text-sm font-medium text-purple-600">{property.price}/night</p>
                                             </div>
-                                            <Button variant="ghost" size="icon">
-                                                <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                                            </Button>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-6">
                                         <Heart className="mx-auto h-10 w-10 text-gray-300" />
-                                        <h3 className="mt-2 font-medium">No saved properties</h3>
-                                        <p className="mt-1 text-sm text-gray-500">When you find properties you like, save them here</p>
-                                        <Link href="/explore">
-                                            <Button className="mt-4" size="sm">
-                                                Explore Properties
-                                            </Button>
-                                        </Link>
+                                        <p className="mt-2 text-sm text-gray-500">No saved properties</p>
                                     </div>
                                 )}
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Recent Chat Activity */}
-                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden">
+                    {/* Recent Chats */}
+                    <Card className="rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 w-full h-full overflow-hidden hover-scale">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-lg font-medium">Recent Chat Activity</CardTitle>
-                            <CardDescription>Your conversations with SARA</CardDescription>
+                            <CardTitle className="text-lg font-medium">Recent Chats</CardTitle>
+                            <CardDescription>Your latest conversations</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4 w-full max-w-full overflow-hidden">
+                            <div className="space-y-4">
                                 {chatHistory.length > 0 ? (
                                     chatHistory.map((chat) => (
-                                        <Link href={`/chat/${chat.id}`} key={chat.id}>
-                                            <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors w-full max-w-full overflow-hidden">
-                                                <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                                    <MessageSquare className="h-4 w-4 text-purple-600" />
-                                                </div>
-                                                <div className="space-y-1 flex-1">
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="font-medium">{chat.title}</p>
-                                                        <p className="text-xs text-gray-500">{chat.date}</p>
-                                                    </div>
-                                                    <p className="text-sm text-gray-600 truncate w-full max-w-full">{chat.preview}</p>
-                                                </div>
+                                        <div key={chat.id} className="flex items-center space-x-4">
+                                            <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <MessageSquare className="h-8 w-8 text-purple-600" />
                                             </div>
-                                        </Link>
+                                            <div className="flex-1 space-y-1">
+                                                <p className="font-medium">{chat.title}</p>
+                                                <p className="text-sm text-gray-500">{chat.date}</p>
+                                                <p className="text-sm text-gray-600 truncate">{chat.preview}</p>
+                                            </div>
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-6">
                                         <MessageSquare className="mx-auto h-10 w-10 text-gray-300" />
-                                        <h3 className="mt-2 font-medium">No recent chats</h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Start a conversation with SARA to get help finding your perfect stay
-                                        </p>
-                                        <Link href="/chat">
-                                            <Button className="mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700" size="sm">
-                                                Chat with SARA
-                                            </Button>
-                                        </Link>
+                                        <p className="mt-2 text-sm text-gray-500">No recent chats</p>
                                     </div>
                                 )}
                             </div>
                         </CardContent>
                     </Card>
-                </motion.div>
+                </div>
             </div>
         </div>
     )

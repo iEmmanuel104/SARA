@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/ui/logo"
 import { Button } from "@/components/ui/button"
+import { usePrivy } from "@privy-io/react-auth"
 
 export function MainNav() {
     const pathname = usePathname()
+    const { ready, authenticated, login, logout } = usePrivy()
 
     const routes = [
         {
@@ -48,14 +50,37 @@ export function MainNav() {
                     </nav>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <Link href="/signin">
-                        <Button variant="ghost" size="sm">
-                            Log in
-                        </Button>
-                    </Link>
-                    <Link href="/signup">
-                        <Button size="sm" className="text-white">Sign up</Button>
-                    </Link>
+                    {!ready ? (
+                        <div className="h-8 w-20 animate-pulse bg-gray-200 rounded" />
+                    ) : authenticated ? (
+                        <>
+                            <Link href="/wallet-connect">
+                                <Button variant="ghost" size="sm">
+                                    My Wallet
+                                </Button>
+                            </Link>
+                            <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={logout}
+                            >
+                                Log out
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={login}
+                            >
+                                Connect Wallet
+                            </Button>
+                            <Link href="/signup">
+                                <Button size="sm" className="text-white">Sign up</Button>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
         </header>

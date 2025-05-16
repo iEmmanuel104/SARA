@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { Logo } from "@/components/ui/logo"
 import {
     Bell,
@@ -18,6 +17,7 @@ import {
     Zap,
 } from "lucide-react"
 import Link from "next/link"
+import "@/styles/animations.css"
 
 type NotificationType = {
     id: string
@@ -82,496 +82,241 @@ export function DynamicIsland({ isLoggedIn = false }: DynamicIslandProps) {
 
     return (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
-            <motion.div
-                initial={{ width: 480, height: 60, borderRadius: 30 }}
-                animate={{
-                    width: expanded ? "95%" : notification && showNotification ? 500 : 480,
-                    height: expanded ? "auto" : notification && showNotification ? 100 : 60,
-                    maxHeight: expanded ? "80vh" : "auto",
-                    borderRadius: expanded ? 24 : notification && showNotification ? 20 : 30,
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="relative shadow-lg flex flex-col overflow-hidden"
+            <div
+                className={`relative shadow-lg flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+                    expanded ? "w-[95%] rounded-3xl" : 
+                    notification && showNotification ? "w-[500px] h-[100px] rounded-[20px]" : 
+                    "w-[480px] h-[60px] rounded-[30px]"
+                }`}
             >
                 {/* Animated background with gradient and moving beams */}
-                <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-900 to-indigo-900 z-0"
-                    animate={{
-                        background: pulseEffect
-                            ? "linear-gradient(90deg, rgba(126,34,206,1) 0%, rgba(79,70,229,1) 100%)"
-                            : "linear-gradient(90deg, rgba(88,28,135,1) 0%, rgba(67,56,202,1) 100%)",
-                    }}
-                    transition={{ duration: 1 }}
+                <div
+                    className={`absolute inset-0 transition-colors duration-1000 ${
+                        pulseEffect
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600"
+                            : "bg-gradient-to-r from-purple-900 to-indigo-900"
+                    }`}
                 >
                     {/* Animated beams */}
                     <div className="absolute inset-0 overflow-hidden">
                         {[...Array(6)].map((_, i) => (
-                            <motion.div
+                            <div
                                 key={i}
-                                className="absolute h-[200%] w-[10px] bg-white/10 blur-md"
+                                className="absolute h-[200%] w-[10px] bg-white/10 blur-md animate-beam"
                                 style={{
                                     left: `${i * 20 + Math.random() * 10}%`,
                                     top: "-50%",
                                     transform: "rotate(35deg)",
-                                }}
-                                animate={{
-                                    top: ["150%", "-150%"],
-                                }}
-                                transition={{
-                                    duration: Math.random() * 10 + 15,
-                                    repeat: Number.POSITIVE_INFINITY,
-                                    ease: "linear",
-                                    delay: i * 2,
+                                    animationDelay: `${i * 2}s`,
                                 }}
                             />
                         ))}
                     </div>
 
                     {/* Glowing border effect */}
-                    <motion.div
-                        className="absolute inset-0 border border-white/20 rounded-[inherit] z-10"
-                        animate={{
-                            boxShadow: pulseEffect
-                                ? [
-                                    "0 0 0px 1px rgba(255,255,255,0.3) inset, 0 0 10px 1px rgba(139,92,246,0.5)",
-                                    "0 0 0px 1px rgba(255,255,255,0.5) inset, 0 0 20px 2px rgba(139,92,246,0.8)",
-                                    "0 0 0px 1px rgba(255,255,255,0.3) inset, 0 0 10px 1px rgba(139,92,246,0.5)",
-                                ]
-                                : "0 0 0px 1px rgba(255,255,255,0.3) inset, 0 0 10px 1px rgba(139,92,246,0.5)",
-                        }}
-                        transition={{ duration: 1 }}
+                    <div
+                        className={`absolute inset-0 border border-white/20 rounded-[inherit] z-10 ${
+                            pulseEffect ? "animate-glow" : ""
+                        }`}
                     />
 
                     {/* Particle effects */}
                     {[...Array(20)].map((_, i) => (
-                        <motion.div
+                        <div
                             key={`particle-${i}`}
-                            className="absolute rounded-full bg-white/30 w-1 h-1"
+                            className="absolute rounded-full bg-white/30 w-1 h-1 animate-particle"
                             style={{
                                 left: `${Math.random() * 100}%`,
                                 top: `${Math.random() * 100}%`,
-                            }}
-                            animate={{
-                                opacity: [0, 1, 0],
-                                scale: [0, 1, 0],
-                            }}
-                            transition={{
-                                duration: Math.random() * 3 + 2,
-                                repeat: Number.POSITIVE_INFINITY,
-                                delay: Math.random() * 5,
+                                animationDelay: `${Math.random() * 5}s`,
                             }}
                         />
                     ))}
-                </motion.div>
+                </div>
 
                 {/* Collapsed state - Logo and navigation items */}
-                <AnimatePresence mode="wait">
-                    {!expanded && !showNotification && (
-                        <motion.div
-                            key="collapsed"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center justify-between h-full px-6 relative z-20"
-                        >
-                            <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
-                                <Logo size="small" />
-                            </motion.div>
+                {!expanded && !showNotification && (
+                    <div className="flex items-center justify-between h-full px-6 relative z-20 animate-fade-in">
+                        <div className="hover-scale">
+                            <Logo size="small" />
+                        </div>
 
-                            <div className="flex items-center space-x-6">
-                                {isLoggedIn ? (
-                                    // Logged in navigation
-                                    <>
-                                        <Link href="/dashboard">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <Home className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Home</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Home
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/chat">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <MessageSquare className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Chat</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Chat
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/explore">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <Search className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Explore</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Explore
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/saved">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <Heart className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Saved</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Saved
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/bookings">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <Calendar className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Bookings</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Bookings
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <motion.div
-                                            whileHover={{ scale: 1.1, y: -2 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex flex-col items-center justify-center group relative"
-                                            onClick={() => setExpanded(true)}
-                                        >
+                        <div className="flex items-center space-x-6">
+                            {isLoggedIn ? (
+                                // Logged in navigation
+                                <>
+                                    <Link href="/dashboard">
+                                        <div className="flex flex-col items-center justify-center group relative hover-lift">
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                <Menu className="h-4 w-4 text-white" />
+                                                <Home className="h-4 w-4 text-white" />
                                             </div>
-                                            <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
+                                            <span className="text-white text-xs mt-1 hidden md:block">Home</span>
                                             <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                Menu
+                                                Home
                                             </div>
-                                        </motion.div>
-                                    </>
-                                ) : (
-                                    // Not logged in navigation - fewer options
-                                    <>
-                                        <Link href="/chat">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <MessageSquare className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Chat</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Chat
-                                                </div>
-                                            </motion.div>
-                                        </Link>
+                                        </div>
+                                    </Link>
 
-                                        <Link href="/explore">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <Search className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Explore</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Explore
-                                                </div>
-                                            </motion.div>
-                                        </Link>
+                                    <div
+                                        className="flex flex-col items-center justify-center group relative hover-lift"
+                                        onClick={() => setExpanded(true)}
+                                    >
+                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                            <Menu className="h-3 w-3 text-white" />
+                                        </div>
+                                        <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
+                                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                            Menu
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                // Not logged in navigation
+                                <>
+                                    <div
+                                        className="flex flex-col items-center justify-center group relative hover-lift"
+                                        onClick={() => setExpanded(true)}
+                                    >
+                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                            <Menu className="h-3 w-3 text-white" />
+                                        </div>
+                                        <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
+                                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
+                                            Menu
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                                        <Link href="/signin">
-                                            <motion.div
-                                                whileHover={{ scale: 1.1, y: -2 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="flex flex-col items-center justify-center group relative"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <LogIn className="h-4 w-4 text-white" />
-                                                </div>
-                                                <span className="text-white text-xs mt-1 hidden md:block">Sign In</span>
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                    Sign In
-                                                </div>
-                                            </motion.div>
-                                        </Link>
-
-                                        <motion.div
-                                            whileHover={{ scale: 1.1, y: -2 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex flex-col items-center justify-center group relative"
-                                            onClick={() => setExpanded(true)}
-                                        >
-                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                <Menu className="h-4 w-4 text-white" />
-                                            </div>
-                                            <span className="text-white text-xs mt-1 hidden md:block">Menu</span>
-                                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 md:hidden whitespace-nowrap">
-                                                Menu
-                                            </div>
-                                        </motion.div>
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Notification state */}
-                    {!expanded && showNotification && notification && (
-                        <motion.div
-                            key="notification"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="flex items-center h-full px-6 py-2 relative z-20"
-                        >
-                            <div
-                                className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm ${notification.type === "message"
+                {/* Notification state */}
+                {!expanded && showNotification && notification && (
+                    <div className="flex items-center h-full px-6 py-2 relative z-20 animate-slide-down">
+                        <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm ${
+                                notification.type === "message"
                                     ? "bg-purple-600/80"
                                     : notification.type === "alert"
-                                        ? "bg-red-500/80"
-                                        : "bg-blue-500/80"
-                                    }`}
-                            >
-                                {notification.type === "message" ? (
-                                    <MessageSquare className="h-6 w-6 text-white" />
-                                ) : notification.type === "alert" ? (
-                                    <Bell className="h-6 w-6 text-white" />
-                                ) : (
-                                    <Search className="h-6 w-6 text-white" />
-                                )}
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-white text-base font-medium">{notification.title}</h3>
-                                <p className="text-white/80 text-sm">{notification.message}</p>
-                            </div>
-
-                            {/* Animated dots to indicate action */}
-                            <div className="flex space-x-1 ml-2">
-                                {[...Array(3)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className="w-2 h-2 rounded-full bg-white/70"
-                                        animate={{
-                                            opacity: [0.4, 1, 0.4],
-                                            scale: [0.8, 1, 0.8],
-                                        }}
-                                        transition={{
-                                            duration: 1.5,
-                                            repeat: Number.POSITIVE_INFINITY,
-                                            delay: i * 0.2,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Expanded state - Full menu */}
-                    {expanded && (
-                        <motion.div
-                            key="expanded"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex flex-col h-full p-6 relative z-20 overflow-y-auto"
+                                    ? "bg-red-500/80"
+                                    : "bg-blue-500/80"
+                            }`}
                         >
-                            <div className="flex items-center justify-between mb-6">
-                                <Logo size="default" />
-                                <motion.div
-                                    whileHover={{ rotate: 90 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setExpanded(false)
-                                    }}
-                                >
-                                    <Menu className="h-5 w-5 text-white" />
-                                </motion.div>
-                            </div>
+                            {notification.type === "message" ? (
+                                <MessageSquare className="h-6 w-6 text-white" />
+                            ) : notification.type === "alert" ? (
+                                <Bell className="h-6 w-6 text-white" />
+                            ) : (
+                                <Search className="h-6 w-6 text-white" />
+                            )}
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-white text-base font-medium">{notification.title}</h3>
+                            <p className="text-white/80 text-sm">{notification.message}</p>
+                        </div>
 
-                            <div className="grid grid-cols-3 gap-4 mt-2 pb-6">
-                                <Link href="/chat" onClick={(e) => e.stopPropagation()}>
-                                    <motion.div
-                                        whileHover={{ scale: 1.05, y: -3 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="bg-gradient-to-br from-purple-600/80 to-purple-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                    >
-                                        <div className="relative">
-                                            <MessageSquare className="h-8 w-8 text-white mb-2" />
-                                            <motion.div
-                                                className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white"
-                                                animate={{
-                                                    scale: [1, 1.2, 1],
-                                                    opacity: [0.7, 1, 0.7],
-                                                }}
-                                                transition={{
-                                                    duration: 2,
-                                                    repeat: Number.POSITIVE_INFINITY,
-                                                }}
-                                            />
-                                        </div>
-                                        <span className="text-white text-sm font-medium">Chat</span>
-                                    </motion.div>
-                                </Link>
+                        {/* Animated dots to indicate action */}
+                        <div className="flex space-x-1 ml-2">
+                            {[...Array(3)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="w-2 h-2 rounded-full bg-white/70 animate-pulse"
+                                    style={{ animationDelay: `${i * 0.2}s` }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-                                <Link href="/explore" onClick={(e) => e.stopPropagation()}>
-                                    <motion.div
-                                        whileHover={{ scale: 1.05, y: -3 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="bg-gradient-to-br from-indigo-600/80 to-indigo-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                    >
-                                        <Search className="h-8 w-8 text-white mb-2" />
-                                        <span className="text-white text-sm font-medium">Explore</span>
-                                    </motion.div>
-                                </Link>
-
-                                <Link href="/saved" onClick={(e) => e.stopPropagation()}>
-                                    <motion.div
-                                        whileHover={{ scale: 1.05, y: -3 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="bg-gradient-to-br from-pink-600/80 to-pink-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                    >
-                                        <Heart className="h-8 w-8 text-white mb-2" />
-                                        <span className="text-white text-sm font-medium">Saved</span>
-                                    </motion.div>
-                                </Link>
-
-                                {isLoggedIn ? (
-                                    // Logged in expanded options
-                                    <>
-                                        <Link href="/profile" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-blue-600/80 to-blue-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <User className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">Profile</span>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/bookings" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-green-600/80 to-green-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <Calendar className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">Bookings</span>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/settings" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-gray-600/80 to-gray-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <Settings className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">Settings</span>
-                                            </motion.div>
-                                        </Link>
-                                    </>
-                                ) : (
-                                    // Not logged in expanded options
-                                    <>
-                                        <Link href="/signin" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-blue-600/80 to-blue-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <LogIn className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">Sign In</span>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/signup" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-green-600/80 to-green-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <User className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">Sign Up</span>
-                                            </motion.div>
-                                        </Link>
-
-                                        <Link href="/about" onClick={(e) => e.stopPropagation()}>
-                                            <motion.div
-                                                whileHover={{ scale: 1.05, y: -3 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className="bg-gradient-to-br from-gray-600/80 to-gray-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg"
-                                            >
-                                                <Sparkles className="h-8 w-8 text-white mb-2" />
-                                                <span className="text-white text-sm font-medium">About</span>
-                                            </motion.div>
-                                        </Link>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* AI Assistant quick access */}
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                className="mt-6 mb-4 bg-gradient-to-r from-purple-500/30 to-indigo-500/30 rounded-xl p-4 backdrop-blur-sm border border-white/10"
+                {/* Expanded state - Full menu */}
+                {expanded && (
+                    <div className="flex flex-col h-full p-6 relative z-20 overflow-y-auto animate-scale-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <Logo size="default" />
+                            <div
+                                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm hover-scale"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setExpanded(false)
+                                }}
                             >
-                                <div className="flex items-center">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mr-3">
-                                        <Zap className="h-5 w-5 text-white" />
+                                <Menu className="h-5 w-5 text-white" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mt-2 pb-6">
+                            <Link href="/chat" onClick={(e) => e.stopPropagation()}>
+                                <div className="bg-gradient-to-br from-purple-600/80 to-purple-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                    <div className="relative">
+                                        <MessageSquare className="h-8 w-8 text-white mb-2" />
+                                        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white animate-pulse" />
                                     </div>
-                                    <div>
-                                        <h3 className="text-white font-medium">Ask SARA</h3>
-                                        <p className="text-white/70 text-sm">Your AI rental assistant is ready to help</p>
-                                    </div>
-                                    <Link href="/chat" onClick={(e) => e.stopPropagation()}>
-                                        <motion.div
-                                            className="ml-auto bg-white/20 rounded-full px-3 py-1 text-white text-sm backdrop-blur-sm"
-                                            whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.3)" }}
-                                        >
-                                            Chat Now
-                                        </motion.div>
-                                    </Link>
+                                    <span className="text-white text-sm font-medium">Chat</span>
                                 </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
+                            </Link>
+
+                            <Link href="/explore" onClick={(e) => e.stopPropagation()}>
+                                <div className="bg-gradient-to-br from-indigo-600/80 to-indigo-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                    <Search className="h-8 w-8 text-white mb-2" />
+                                    <span className="text-white text-sm font-medium">Explore</span>
+                                </div>
+                            </Link>
+
+                            <Link href="/saved" onClick={(e) => e.stopPropagation()}>
+                                <div className="bg-gradient-to-br from-pink-600/80 to-pink-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                    <Heart className="h-8 w-8 text-white mb-2" />
+                                    <span className="text-white text-sm font-medium">Saved</span>
+                                </div>
+                            </Link>
+
+                            {isLoggedIn ? (
+                                // Logged in expanded options
+                                <>
+                                    <Link href="/profile" onClick={(e) => e.stopPropagation()}>
+                                        <div className="bg-gradient-to-br from-blue-600/80 to-blue-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                            <User className="h-8 w-8 text-white mb-2" />
+                                            <span className="text-white text-sm font-medium">Profile</span>
+                                        </div>
+                                    </Link>
+
+                                    <Link href="/bookings" onClick={(e) => e.stopPropagation()}>
+                                        <div className="bg-gradient-to-br from-green-600/80 to-green-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                            <Calendar className="h-8 w-8 text-white mb-2" />
+                                            <span className="text-white text-sm font-medium">Bookings</span>
+                                        </div>
+                                    </Link>
+
+                                    <Link href="/settings" onClick={(e) => e.stopPropagation()}>
+                                        <div className="bg-gradient-to-br from-gray-600/80 to-gray-800/80 rounded-xl p-4 flex flex-col items-center justify-center backdrop-blur-sm border border-white/10 shadow-lg hover-lift">
+                                            <Settings className="h-8 w-8 text-white mb-2" />
+                                            <span className="text-white text-sm font-medium">Settings</span>
+                                        </div>
+                                    </Link>
+                                </>
+                            ) : null}
+                        </div>
+
+                        {/* AI Assistant quick access */}
+                        <div className="mt-6 mb-4 bg-gradient-to-r from-purple-500/30 to-indigo-500/30 rounded-xl p-4 backdrop-blur-sm border border-white/10 hover-scale">
+                            <div className="flex items-center">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center mr-3">
+                                    <Zap className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium">Ask SARA</h3>
+                                    <p className="text-white/70 text-sm">Your AI rental assistant is ready to help</p>
+                                </div>
+                                <Link href="/chat" onClick={(e) => e.stopPropagation()}>
+                                    <div className="ml-auto bg-white/20 rounded-full px-3 py-1 text-white text-sm backdrop-blur-sm hover:bg-white/30 transition-colors duration-200">
+                                        Chat Now
+                                    </div>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

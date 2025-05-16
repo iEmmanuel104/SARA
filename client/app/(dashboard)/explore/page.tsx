@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Filter, MapPin } from "lucide-react"
@@ -10,6 +9,7 @@ import { PropertyCard } from "@/components/property-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import "@/styles/animations.css"
 
 // Sample property data
 const properties = [
@@ -151,42 +151,22 @@ export default function Explore() {
         return true
     })
 
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-            },
-        },
-    }
-
     return (
         <div className="container px-4 py-8 md:px-6 md:py-12">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0"
-            >
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 animate-slide-down">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Explore Properties</h1>
                     <p className="text-gray-500">Find your perfect short-term rental</p>
                 </div>
                 <Link href="/chat">
-                    <Button className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                    <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover-scale">
                         <Search className="mr-2 h-4 w-4" />
                         Chat with SARA
                     </Button>
                 </Link>
-            </motion.div>
+            </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-6"
-            >
+            <div className="mt-6 animate-slide-up delay-200">
                 <Tabs defaultValue="grid">
                     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
                         <div className="flex items-center space-x-4">
@@ -200,7 +180,7 @@ export default function Explore() {
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <Button variant="outline" className="flex items-center">
+                            <Button variant="outline" className="flex items-center hover-scale">
                                 <Filter className="mr-2 h-4 w-4" />
                                 Filters
                             </Button>
@@ -216,136 +196,93 @@ export default function Explore() {
                         <div className="flex flex-wrap gap-2 mb-6">
                             <Badge
                                 variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Apartment") ? "bg-purple-100" : ""}`}
+                                className={`cursor-pointer transition-colors duration-200 ${
+                                    activeFilters.includes("Apartment") ? "bg-purple-100" : ""
+                                }`}
                                 onClick={() => toggleFilter("Apartment")}
                             >
                                 Apartment
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("House") ? "bg-purple-100" : ""}`}
+                                className={`cursor-pointer transition-colors duration-200 ${
+                                    activeFilters.includes("House") ? "bg-purple-100" : ""
+                                }`}
                                 onClick={() => toggleFilter("House")}
                             >
                                 House
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Villa") ? "bg-purple-100" : ""}`}
+                                className={`cursor-pointer transition-colors duration-200 ${
+                                    activeFilters.includes("Villa") ? "bg-purple-100" : ""
+                                }`}
                                 onClick={() => toggleFilter("Villa")}
                             >
                                 Villa
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Studio") ? "bg-purple-100" : ""}`}
+                                className={`cursor-pointer transition-colors duration-200 ${
+                                    activeFilters.includes("Studio") ? "bg-purple-100" : ""
+                                }`}
                                 onClick={() => toggleFilter("Studio")}
                             >
                                 Studio
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Condo") ? "bg-purple-100" : ""}`}
+                                className={`cursor-pointer transition-colors duration-200 ${
+                                    activeFilters.includes("Condo") ? "bg-purple-100" : ""
+                                }`}
                                 onClick={() => toggleFilter("Condo")}
                             >
                                 Condo
                             </Badge>
-                            <Badge
-                                variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Loft") ? "bg-purple-100" : ""}`}
-                                onClick={() => toggleFilter("Loft")}
-                            >
-                                Loft
-                            </Badge>
-                            <Badge
-                                variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Penthouse") ? "bg-purple-100" : ""}`}
-                                onClick={() => toggleFilter("Penthouse")}
-                            >
-                                Penthouse
-                            </Badge>
-                            <Badge
-                                variant="outline"
-                                className={`cursor-pointer ${activeFilters.includes("Cottage") ? "bg-purple-100" : ""}`}
-                                onClick={() => toggleFilter("Cottage")}
-                            >
-                                Cottage
-                            </Badge>
                         </div>
 
-                        <div className="mb-8">
-                            <h3 className="text-sm font-medium mb-2">
-                                Price Range: ${priceRange[0]} - ${priceRange[1]}
-                            </h3>
-                            <Slider
-                                defaultValue={[100, 400]}
-                                max={500}
-                                min={50}
-                                step={10}
-                                value={priceRange}
-                                onValueChange={setPriceRange}
-                            />
-                        </div>
-                    </div>
-
-                    <TabsContent value="grid" className="mt-6">
-                        <motion.div
-                            variants={container}
-                            initial="hidden"
-                            animate="show"
-                            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                        >
-                            {filteredProperties.map((property) => (
-                                <PropertyCard key={property.id} property={property} />
-                            ))}
-                        </motion.div>
-                    </TabsContent>
-
-                    <TabsContent value="map" className="mt-6">
-                        <div className="rounded-lg border h-[600px] bg-gray-100 flex items-center justify-center">
-                            <div className="text-center">
-                                <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium">Map View Coming Soon</h3>
-                                <p className="text-gray-500 max-w-md mx-auto mt-2">
-                                    We're working on an interactive map to help you find properties by location.
-                                </p>
+                        <TabsContent value="grid" className="mt-0">
+                            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                                {filteredProperties.map((property, index) => (
+                                    <div
+                                        key={property.id}
+                                        className="animate-slide-up"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        <PropertyCard property={property} />
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </TabsContent>
+                        </TabsContent>
 
-                    <TabsContent value="list" className="mt-6">
-                        <div className="space-y-4">
-                            {filteredProperties.map((property) => (
-                                <PropertyCard key={property.id} property={property} variant="compact" className="w-full" />
-                            ))}
-                        </div>
-                    </TabsContent>
+                        <TabsContent value="map" className="mt-0">
+                            <div className="h-[600px] rounded-lg border bg-gray-100 flex items-center justify-center">
+                                <div className="text-center">
+                                    <MapPin className="mx-auto h-12 w-12 text-gray-400" />
+                                    <h3 className="mt-4 text-lg font-medium">Map View Coming Soon</h3>
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        We're working on bringing you an interactive map view
+                                    </p>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="list" className="mt-0">
+                            <div className="space-y-4">
+                                {filteredProperties.map((property, index) => (
+                                    <div
+                                        key={property.id}
+                                        className="animate-slide-up"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        <PropertyCard property={property} variant="list" />
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
+                    </div>
                 </Tabs>
-            </motion.div>
-
-            {filteredProperties.length === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="mt-12 flex flex-col items-center justify-center py-12 text-center"
-                >
-                    <Search className="h-16 w-16 text-gray-300" />
-                    <h3 className="mt-4 text-xl font-medium">No properties found</h3>
-                    <p className="mt-2 text-gray-500 max-w-md">
-                        Try adjusting your search filters or explore different locations.
-                    </p>
-                    <Button
-                        className="mt-6"
-                        onClick={() => {
-                            setSearchTerm("")
-                            setPriceRange([100, 400])
-                            setActiveFilters([])
-                        }}
-                    >
-                        Reset Filters
-                    </Button>
-                </motion.div>
-            )}
+            </div>
         </div>
     )
 }

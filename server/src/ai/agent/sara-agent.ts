@@ -22,9 +22,9 @@ import { UserPreferencesTool } from '../tools/user-preferences.tool';
 import { NLPSearchTool } from '../tools/nlp-search.tool';
 import { PropertyRecommendationsTool } from '../tools/property-recommendations.tool';
 import { z } from 'zod';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { Hex } from 'viem';
-import * as fs from 'fs';
+// import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+// import { Hex } from 'viem';
+// import * as fs from 'fs';
 
 // Custom action provider for SARA tools
 class SaraActionProvider extends ActionProvider {
@@ -33,7 +33,7 @@ class SaraActionProvider extends ActionProvider {
         private readonly bookingCheckTool: BookingCheckTool,
         private readonly userPreferencesTool: UserPreferencesTool,
         private readonly nlpSearchTool: NLPSearchTool,
-        private readonly propertyRecommendationsTool: PropertyRecommendationsTool
+        private readonly propertyRecommendationsTool: PropertyRecommendationsTool,
     ) {
         super('sara-tools', []);
     }
@@ -119,10 +119,10 @@ class SaraActionProvider extends ActionProvider {
         ];
     }
 
-    supportsNetwork(_network: Network): boolean {
+    supportsNetwork(network: Network): boolean {
         // Since our tools don't depend on any specific network, we can support all networks
-        // The Network type from AgentKit doesn't have a name property, so we'll just return true
-        return true;
+        // We use the network parameter to check if it's a valid network
+        return network !== undefined;
     }
 }
 
@@ -173,14 +173,23 @@ export class SaraAgent {
                 this.propertyRecommendationsTool
             );
 
+            // Get wallet credentials from environment variables
+            const walletId = this.configService.get<string>('PRIVY_WALLET_ID');
+            const authorizationPrivateKey = this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY');
+            const authorizationKeyId = this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_KEY_ID');
+
+            if (!walletId || !authorizationPrivateKey || !authorizationKeyId) {
+                throw new Error('Missing required wallet credentials. Please ensure PRIVY_WALLET_ID, PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY, and PRIVY_WALLET_AUTHORIZATION_KEY_ID are set in your environment variables.');
+            }
+
             // Configure Agent's Wallet Provider
             const config: PrivyWalletConfig = {
                 appId: this.configService.get<string>('PRIVY_APP_ID'),
                 appSecret: this.configService.get<string>('PRIVY_APP_SECRET'),
                 chainId: this.configService.get<string>('CHAIN_ID', '84532'), // base-sepolia
-                // walletId: this.configService.get<string>('PRIVY_WALLET_ID'),
-                // authorizationPrivateKey: this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_PRIVATE_KEY'),
-                // authorizationKeyId: this.configService.get<string>('PRIVY_WALLET_AUTHORIZATION_KEY_ID'),
+                walletId,
+                authorizationPrivateKey,
+                authorizationKeyId,
             };
 
             // Initialize the agent's wallet
@@ -216,22 +225,43 @@ export class SaraAgent {
     }
 
     /**
-     * Process a transaction between user and agent
+     * Records a payment in the system
+     * Note: Actual payment processing should be handled by a dedicated payment service
      */
-    async processTransaction(userWalletId: string, amount: string, description: string) {
+    async recordPayment(
+        userId: string,
+        bookingId: string,
+        amount: string,
+        paymentType = 'booking_payment',
+        paymentMethod = 'credit_card',
+        currency = 'USD'
+    ) {
         try {
-            // Here you would implement the logic to:
-            // 1. Verify the user's wallet
-            // 2. Process the transaction
-            // 3. Update the database
-            // 4. Return transaction details
+            // Create payment record in database
+            const payment = await this.prisma.payment.create({
+                data: {
+                    userId,
+                    bookingId,
+                    amount: parseFloat(amount),
+                    paymentType,
+                    paymentMethod,
+                    currency,
+                    paymentStatus: 'pending',
+                    paymentDate: new Date(),
+                    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+
             return {
                 success: true,
-                message: 'Transaction processed successfully',
-                // Add more transaction details as needed
+                message: 'Payment record created successfully',
+                paymentId: payment.id,
+                status: 'pending'
             };
         } catch (error) {
-            console.error('Error processing transaction:', error);
+            console.error('Error recording payment:', error);
             throw error;
         }
     }
