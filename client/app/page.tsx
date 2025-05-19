@@ -7,9 +7,13 @@ import { DynamicIsland } from "@/components/dynamic-island"
 import { Logo } from "@/components/ui/logo"
 import { MessageSquare, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { usePrivy } from "@privy-io/react-auth"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
     const [currentBg, setCurrentBg] = useState(0)
+    const { login, ready, authenticated } = usePrivy()
+    const router = useRouter()
     const backgrounds = [
         "bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-400",
         "bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-400",
@@ -23,6 +27,21 @@ export default function Home() {
         }, 5000)
         return () => clearInterval(interval)
     }, [])
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (ready && authenticated) {
+            router.push('/dashboard')
+        }
+    }, [ready, authenticated, router])
+
+    const handleGetStarted = async () => {
+        try {
+            await login()
+        } catch (error) {
+            console.error('Login error:', error)
+        }
+    }
 
     return (
         <div className="flex min-h-screen flex-col relative">
@@ -100,14 +119,13 @@ export default function Home() {
                         </p>
 
                         <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center animate-slide-up delay-600">
-                            <Link href="/wallet-connect" className="w-full sm:w-auto">
-                                <Button
-                                    size="lg"
-                                    className="w-full sm:w-auto bg-white text-purple-700 hover:bg-gray-100 text-lg font-medium shadow-lg hover-scale"
-                                >
-                                    Get Started
-                                </Button>
-                            </Link>
+                            <Button
+                                size="lg"
+                                className="w-full sm:w-auto bg-white text-purple-700 hover:bg-gray-100 text-lg font-medium shadow-lg hover-scale"
+                                onClick={handleGetStarted}
+                            >
+                                Get Started
+                            </Button>
 
                             <Link href="/chat" className="w-full sm:w-auto">
                                 <Button

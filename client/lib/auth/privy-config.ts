@@ -1,34 +1,37 @@
 import { PrivyClientConfig } from '@privy-io/react-auth';
+import { base, baseGoerli, mainnet, sepolia, polygon, polygonMumbai } from 'viem/chains';
 
 export const privyConfig: PrivyClientConfig = {
     appearance: {
+        walletList: ['coinbase_wallet', 'metamask', 'rainbow', 'wallet_connect'],
         theme: 'light',
-        accentColor: '#000000',
-        logo: '/logo.png', // Add your logo path
+        accentColor: '#7C3AED', // Purple to match our theme
+        logo: '/logo.png',
+        showWalletLoginFirst: true,
     },
     loginMethods: [
-        'email',
         'wallet',
+        'email',
         'google',
-        'discord',
-        'github',
+        // 'discord',
+        // 'github',
     ],
     embeddedWallets: {
-        createOnLogin: 'all-users',
-        noPromptOnSignature: false,
+        createOnLogin: 'users-without-wallets',
+        // noPromptOnSignature: false,
     },
-    defaultChain: 84532, // Base Sepolia
-    supportedChains: [
-        {
-            chainId: 84532,
-            name: 'Base Sepolia',
-            rpcUrl: process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL,
-            blockExplorer: 'https://sepolia.basescan.org',
-            nativeCurrency: {
-                name: 'ETH',
-                symbol: 'ETH',
-                decimals: 18,
-            },
+    externalWallets: {
+        coinbaseWallet: {
+            connectionOptions: 'smartWalletOnly',
         },
-    ],
+    },
+    defaultChain: base,
+    supportedChains: [base, mainnet, sepolia, baseGoerli, polygon, polygonMumbai],
+    // Add custom styling for the modal
+    // modal: {
+    //     title: 'Welcome to SARA',
+    //     subtitle: 'Connect your wallet or sign in to get started',
+    //     primaryButtonText: 'Continue',
+    //     secondaryButtonText: 'Learn More',
+    // },
 }; 

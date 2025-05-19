@@ -1,22 +1,15 @@
+"use client";
+
 import { PrivyProvider, usePrivy } from '@privy-io/react-auth';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useAuthStore } from '@/src/store/auth-store';
-import { privyConfig } from '@/src/lib/auth/privy-config';
+import { useAuthStore } from '@/store/auth-store';
+import { privyConfig } from '@/lib/auth/privy-config';
+import { authWorker } from '@/lib/workers/auth-worker';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    return (
-        <PrivyProvider
-            appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
-            config={privyConfig}
-        >
-            <AuthSync>{children}</AuthSync>
-        </PrivyProvider>
-    );
-}
-
-function AuthSync({ children }: { children: React.ReactNode }) {
-    const { user, ready, authenticated } = usePrivy();
+// Separate client component for auth sync
+const AuthSync = ({ children }: { children: React.ReactNode }) => {
+    const { user, ready, authenticated, getAccessToken } = usePrivy();
     const router = useRouter();
     const { setUser, clearUser } = useAuthStore();
 
@@ -27,7 +20,7 @@ function AuthSync({ children }: { children: React.ReactNode }) {
             if (authenticated && user) {
                 try {
                     // Get the Privy token
-                    const privyToken = await user.getAccessToken();
+                    const privyToken = await getAccessToken();
                     
                     // Send token to your backend
                     const response = await fetch('/api/v1/auth/login', {
@@ -55,49 +48,39 @@ function AuthSync({ children }: { children: React.ReactNode }) {
                     document.cookie = `access_token=${data.access_token}; path=/; secure; samesite=strict`;
                     document.cookie = `refresh_token=${data.refresh_token}; path=/; secure; samesite=strict`;
 
+                    // Start token refresh worker
+                    authWorker.startTokenRefresh(authWorker.refreshToken);
+
                 } catch (error) {
                     console.error('Error syncing with server:', error);
                     clearUser();
+                    authWorker.cleanupSession();
                 }
             } else {
                 clearUser();
+                authWorker.cleanupSession();
             }
         };
 
         syncWithServer();
-    }, [ready, authenticated, user, setUser, clearUser]);
 
-    // Handle token refresh
-    useEffect(() => {
-        const refreshInterval = setInterval(async () => {
-            if (authenticated && user) {
-                try {
-                    const response = await fetch('/api/v1/auth/refresh', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            token: document.cookie
-                                .split('; ')
-                                .find(row => row.startsWith('refresh_token='))
-                                ?.split('=')[1],
-                        }),
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        document.cookie = `access_token=${data.access_token}; path=/; secure; samesite=strict`;
-                        document.cookie = `refresh_token=${data.refresh_token}; path=/; secure; samesite=strict`;
-                    }
-                } catch (error) {
-                    console.error('Error refreshing token:', error);
-                }
-            }
-        }, 14 * 60 * 1000); // Refresh every 14 minutes
-
-        return () => clearInterval(refreshInterval);
-    }, [authenticated, user]);
+        // Cleanup on unmount
+        return () => {
+            authWorker.stopTokenRefresh();
+        };
+    }, [ready, authenticated, user, setUser, clearUser, getAccessToken]);
 
     return <>{children}</>;
+};
+
+// Main provider component
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    return (
+        <PrivyProvider
+            appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
+            config={privyConfig}
+        >
+            <AuthSync>{children}</AuthSync>
+        </PrivyProvider>
+    );
 } 
